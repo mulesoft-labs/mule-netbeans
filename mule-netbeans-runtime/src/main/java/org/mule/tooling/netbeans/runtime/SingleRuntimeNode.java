@@ -15,6 +15,11 @@
  */
 package org.mule.tooling.netbeans.runtime;
 
+import java.io.IOException;
+import javax.swing.Action;
+import org.mule.tooling.netbeans.api.MuleRuntime;
+import org.mule.tooling.netbeans.api.MuleSupport;
+import org.openide.actions.DeleteAction;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 
@@ -23,9 +28,32 @@ import org.openide.nodes.Children;
  * @author Facundo Lopez Kaufmann
  */
 public class SingleRuntimeNode extends AbstractNode {
-    
-    public SingleRuntimeNode(Children children) {
-        super(children);
+    static final String BADGE = "org/mule/tooling/netbeans/runtime/resources/mule16.png"; // NOI18N
+
+    private MuleRuntime muleRuntime;
+    public SingleRuntimeNode(MuleRuntime muleRuntime) {
+        super(Children.LEAF);
+        this.muleRuntime = muleRuntime;
+        setDisplayName(muleRuntime.getInformation().getName());
+        setShortDescription(muleRuntime.getVersion().toString());
+        setIconBaseWithExtension(BADGE);
+    }
+
+    @Override
+    public void destroy() throws IOException {
+        MuleSupport.getStore().remove(muleRuntime.getInformation());
+        super.destroy();
+    }
+
+    @Override
+    public boolean canDestroy() {
+        return true;
     }
     
+    @Override
+    public Action[] getActions(boolean context) {
+        return new Action[]{
+            DeleteAction.get(DeleteAction.class),
+        };
+    }
 }

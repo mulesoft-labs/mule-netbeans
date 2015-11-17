@@ -15,16 +15,13 @@
  */
 package org.mule.tooling.netbeans.api;
 
-import org.mule.tooling.netbeans.runtime.Status;
-
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public class DefaultMuleRuntimeSupport implements MuleRuntimeSupport {
-
-    @Override
-    public Status getStatus() {
-        return Status.DOWN;
-    }
+public enum Status {
+    STARTING,
+    RUNNING,
+    SHUTTING_DOWN,
+    DOWN;
 }

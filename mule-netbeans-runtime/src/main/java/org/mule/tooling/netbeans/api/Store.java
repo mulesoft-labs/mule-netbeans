@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 facundolopezkaufmann.
+ * Copyright 2015 Facundo Lopez Kaufmann.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,24 @@
  */
 package org.mule.tooling.netbeans.api;
 
-import org.mule.tooling.netbeans.runtime.Status;
+import java.util.List;
+import javax.swing.event.ChangeListener;
 
 /**
- * 
+ *
  * @author Facundo Lopez Kaufmann
  */
-public interface MuleRuntimeSupport {
-    public Status getStatus();
+public interface Store<T> {
+    
+    public T get(String id);
+
+    public List<String> getIds();
+
+    public void store(T instance);
+    
+    public void remove(T instance);
+    
+    public void addChangeListener(ChangeListener listener);
+    
+    public void removeChangeListener(ChangeListener listener);
 }

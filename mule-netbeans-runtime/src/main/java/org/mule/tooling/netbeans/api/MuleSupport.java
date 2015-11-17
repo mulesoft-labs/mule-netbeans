@@ -13,15 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.runtime;
+package org.mule.tooling.netbeans.api;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public enum Status {
-    STARTING,
-    RUNNING,
-    SHUTTING_DOWN,
-    DOWN;
+public class MuleSupport {
+    
+    private static final Store<MuleRuntimeInformation> STORE;
+    static {
+        STORE = new PreferencesBasedStore();
+    }
+    
+    public static MuleRuntime getMuleRuntime(MuleRuntimeInformation information) {
+        return new DefaultMuleRuntime(information);
+    }
+    
+    public static MuleRuntime getRegisteredRuntime(String id) {
+        return getMuleRuntime(getStore().get(id));
+    }
+    
+    public static Store<MuleRuntimeInformation> getStore() {
+        return STORE;
+    }
 }
