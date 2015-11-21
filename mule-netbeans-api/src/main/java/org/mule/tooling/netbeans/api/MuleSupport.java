@@ -16,46 +16,30 @@
 package org.mule.tooling.netbeans.api;
 
 import java.io.File;
+import org.openide.util.Lookup;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public class MuleRuntimeInformation {
-    private String id;
-    private String name;
-    private File muleHome;
-
-    public MuleRuntimeInformation(String id, String name, File muleHome) {
-        this.id = id;
-        this.name = name;
-        this.muleHome = muleHome;
-    }
-
-    public MuleRuntimeInformation() {
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+public class MuleSupport {
+    
+    private static final MuleRuntimeStore STORE;
+    private static final MuleRuntimeFactory FACTORY;
+    static {
+        FACTORY = Lookup.getDefault().lookup(MuleRuntimeFactory.class);
+        STORE = Lookup.getDefault().lookup(MuleRuntimeStore.class);
     }
     
-    public File getMuleHome() {
-        return muleHome;
+    public static MuleRuntime getMuleRuntime(File muleHome) {
+        return FACTORY.create(muleHome);
     }
-
-    public void setMuleHome(File muleHome) {
-        this.muleHome = muleHome;
+    
+    public static MuleRuntime getMuleRuntime(String id) {
+        return getStore().get(id);
+    }
+    
+    public static MuleRuntimeStore getStore() {
+        return STORE;
     }
 }

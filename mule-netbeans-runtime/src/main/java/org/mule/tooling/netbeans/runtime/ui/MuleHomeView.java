@@ -13,72 +13,68 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.runtime;
+package org.mule.tooling.netbeans.runtime.ui;
 
 import java.io.File;
-import java.util.UUID;
 import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
-import org.mule.tooling.netbeans.api.MuleRuntimeInformation;
 import org.mule.tooling.netbeans.api.MuleSupport;
 import org.openide.util.NbBundle.Messages;
 import org.mule.tooling.netbeans.api.MuleRuntime;
+import org.openide.DialogDescriptor;
+import org.openide.DialogDisplayer;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public class ConfigurationView extends javax.swing.JPanel {
+@Messages({
+    "ConfigurationView_TitleAddMuleRuntime=Add Runtime",
+    "ConfigurationView_AddRuntimeActionTitle=Add Runtime..."
+})
+public class MuleHomeView extends javax.swing.JPanel {
+    
+    public static File capture() {
+        final MuleHomeView view = new MuleHomeView();
+        view.getAccessibleContext().setAccessibleDescription(Bundle.ConfigurationView_TitleAddMuleRuntime());
+        DialogDescriptor dd = new DialogDescriptor(view, Bundle.ConfigurationView_AddRuntimeActionTitle());
+        dd.setClosingOptions(new Object[]{
+                    view.getOKButton(),
+                    DialogDescriptor.CANCEL_OPTION
+                });
+        dd.setOptions(new Object[]{
+                    view.getOKButton(),
+                    DialogDescriptor.CANCEL_OPTION
+                });
+        if (view.getOKButton() == DialogDisplayer.getDefault().notify(dd)) {
+            return view.getMuleHome();
+        } else {
+            return null;
+        }
+    }
     
     private String id;
     /**
      * Creates new form ConfigurationView
      */
-    public ConfigurationView() {
+    private MuleHomeView() {
         initComponents();
         validateInformation();
     }
     
-    public ConfigurationView(MuleRuntimeInformation runtime) {
-        this();
-        id = runtime.getId();
-        txtMuleHome.setText(runtime.getMuleHome().getAbsolutePath());
-        txtName.setText(runtime.getName());
-        validateInformation();
+    private MuleRuntime getMuleRuntime() {
+        return MuleSupport.getMuleRuntime(getMuleHome());
     }
-    
-    private MuleRuntime getMuleRuntimeSupport() {
-        return MuleSupport.getMuleRuntime(buildMuleRuntimeInformation(false));
-    }
-    
-    private MuleRuntimeInformation buildMuleRuntimeInformation(boolean generateKey) {
-        String mriId = null;
-        if(generateKey) {
-             mriId = id == null ? UUID.randomUUID().toString() : id;
-        }
-        String name = txtName.getText();
-        File muleHome = new File(txtMuleHome.getText());
-        return new MuleRuntimeInformation(mriId, name, muleHome);
-    }
-    
-    public MuleRuntimeInformation getMuleRuntimeInformation() {
-        return buildMuleRuntimeInformation(true);
+        
+    public File getMuleHome() {
+        return new File(txtMuleHome.getText());
     }
     
     @Messages({
-        "ConfigurationView_validation_txtName_empty=Mule Runtime name can't be empty",
         "ConfigurationView_validation_txtMuleHome_empty=Mule Home can't be empty",
         "ConfigurationView_validation_supportCretion=Unsupported: {0}"
     })
     private void validateInformation() {
-        //check runtime id
-        String name = txtName.getText().trim();
-        if (name.length() == 0) {
-            lblValidate.setText(Bundle.ConfigurationView_validation_txtName_empty());
-            btnOk.setEnabled(false);
-            return;
-        }
-
         //check mule home
         if (txtMuleHome.getText().trim().length() == 0) {
             lblValidate.setText(Bundle.ConfigurationView_validation_txtMuleHome_empty());
@@ -87,7 +83,7 @@ public class ConfigurationView extends javax.swing.JPanel {
         }
         
         try {
-            MuleRuntime support = getMuleRuntimeSupport();
+            MuleRuntime support = getMuleRuntime();
             txtVersion.setText(support.getVersion().toString());
         } catch (Exception e) {
             lblValidate.setText(e.getMessage());
@@ -113,8 +109,6 @@ public class ConfigurationView extends javax.swing.JPanel {
 
         btnOk = new javax.swing.JButton();
         lblHeader = new javax.swing.JLabel();
-        lblName = new javax.swing.JLabel();
-        txtName = new javax.swing.JTextField();
         txtMuleHome = new javax.swing.JTextField();
         btnBrowse = new javax.swing.JButton();
         txtVersion = new javax.swing.JTextField();
@@ -122,38 +116,29 @@ public class ConfigurationView extends javax.swing.JPanel {
         lblVersion = new javax.swing.JLabel();
         lblValidate = new javax.swing.JLabel();
 
-        org.openide.awt.Mnemonics.setLocalizedText(btnOk, org.openide.util.NbBundle.getMessage(ConfigurationView.class, "ConfigurationView.btnOk.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btnOk, org.openide.util.NbBundle.getMessage(MuleHomeView.class, "MuleHomeView.btnOk.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(lblHeader, org.openide.util.NbBundle.getMessage(ConfigurationView.class, "ConfigurationView.lblHeader.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lblHeader, org.openide.util.NbBundle.getMessage(MuleHomeView.class, "MuleHomeView.lblHeader.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(lblName, org.openide.util.NbBundle.getMessage(ConfigurationView.class, "ConfigurationView.lblName.text")); // NOI18N
-
-        txtName.setText(org.openide.util.NbBundle.getMessage(ConfigurationView.class, "ConfigurationView.txtName.text")); // NOI18N
-        txtName.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent evt) {
-                txtNameKeyReleased(evt);
-            }
-        });
-
-        txtMuleHome.setText(org.openide.util.NbBundle.getMessage(ConfigurationView.class, "ConfigurationView.txtMuleHome.text")); // NOI18N
+        txtMuleHome.setText(org.openide.util.NbBundle.getMessage(MuleHomeView.class, "MuleHomeView.txtMuleHome.text")); // NOI18N
         txtMuleHome.setEnabled(false);
 
-        org.openide.awt.Mnemonics.setLocalizedText(btnBrowse, org.openide.util.NbBundle.getMessage(ConfigurationView.class, "ConfigurationView.btnBrowse.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btnBrowse, org.openide.util.NbBundle.getMessage(MuleHomeView.class, "MuleHomeView.btnBrowse.text")); // NOI18N
         btnBrowse.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBrowseActionPerformed(evt);
             }
         });
 
-        txtVersion.setText(org.openide.util.NbBundle.getMessage(ConfigurationView.class, "ConfigurationView.txtVersion.text")); // NOI18N
+        txtVersion.setText(org.openide.util.NbBundle.getMessage(MuleHomeView.class, "MuleHomeView.txtVersion.text")); // NOI18N
         txtVersion.setEnabled(false);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lblMuleHome, org.openide.util.NbBundle.getMessage(ConfigurationView.class, "ConfigurationView.lblMuleHome.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lblMuleHome, org.openide.util.NbBundle.getMessage(MuleHomeView.class, "MuleHomeView.lblMuleHome.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(lblVersion, org.openide.util.NbBundle.getMessage(ConfigurationView.class, "ConfigurationView.lblVersion.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lblVersion, org.openide.util.NbBundle.getMessage(MuleHomeView.class, "MuleHomeView.lblVersion.text")); // NOI18N
 
         lblValidate.setForeground(new java.awt.Color(204, 0, 0));
-        org.openide.awt.Mnemonics.setLocalizedText(lblValidate, org.openide.util.NbBundle.getMessage(ConfigurationView.class, "ConfigurationView.lblValidate.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lblValidate, org.openide.util.NbBundle.getMessage(MuleHomeView.class, "MuleHomeView.lblValidate.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -166,14 +151,12 @@ public class ConfigurationView extends javax.swing.JPanel {
                     .addComponent(lblValidate, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(lblName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(lblMuleHome, javax.swing.GroupLayout.DEFAULT_SIZE, 64, Short.MAX_VALUE)
                             .addComponent(lblVersion, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(txtVersion, javax.swing.GroupLayout.DEFAULT_SIZE, 315, Short.MAX_VALUE)
-                            .addComponent(txtMuleHome)
-                            .addComponent(txtName))
+                            .addComponent(txtMuleHome))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnBrowse)))
                 .addContainerGap())
@@ -183,10 +166,6 @@ public class ConfigurationView extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(lblHeader)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblName)
-                    .addComponent(txtName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtMuleHome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -196,9 +175,9 @@ public class ConfigurationView extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtVersion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblVersion))
-                .addGap(18, 18, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lblValidate)
-                .addContainerGap())
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -208,14 +187,9 @@ public class ConfigurationView extends javax.swing.JPanel {
         chooser.setSelectedFile(new File(txtMuleHome.getText().trim()));
         if (chooser.showOpenDialog(SwingUtilities.getWindowAncestor(this)) == JFileChooser.APPROVE_OPTION) {
             txtMuleHome.setText(chooser.getSelectedFile().getAbsolutePath());
-            txtName.setText(chooser.getSelectedFile().getName());
             validateInformation();
         }
     }//GEN-LAST:event_btnBrowseActionPerformed
-
-    private void txtNameKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtNameKeyReleased
-        validateInformation();
-    }//GEN-LAST:event_txtNameKeyReleased
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -223,11 +197,9 @@ public class ConfigurationView extends javax.swing.JPanel {
     private javax.swing.JButton btnOk;
     private javax.swing.JLabel lblHeader;
     private javax.swing.JLabel lblMuleHome;
-    private javax.swing.JLabel lblName;
     private javax.swing.JLabel lblValidate;
     private javax.swing.JLabel lblVersion;
     private javax.swing.JTextField txtMuleHome;
-    private javax.swing.JTextField txtName;
     private javax.swing.JTextField txtVersion;
     // End of variables declaration//GEN-END:variables
 }

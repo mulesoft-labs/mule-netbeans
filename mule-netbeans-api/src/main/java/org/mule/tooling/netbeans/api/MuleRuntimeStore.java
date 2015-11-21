@@ -19,22 +19,6 @@ package org.mule.tooling.netbeans.api;
  *
  * @author Facundo Lopez Kaufmann
  */
-public class MuleSupport {
+public interface MuleRuntimeStore extends Store<MuleRuntime> {
     
-    private static final Store<MuleRuntimeInformation> STORE;
-    static {
-        STORE = new PreferencesBasedStore();
-    }
-    
-    public static MuleRuntime getMuleRuntime(MuleRuntimeInformation information) {
-        return new DefaultMuleRuntime(information);
-    }
-    
-    public static MuleRuntime getRegisteredRuntime(String id) {
-        return getMuleRuntime(getStore().get(id));
-    }
-    
-    public static Store<MuleRuntimeInformation> getStore() {
-        return STORE;
-    }
 }

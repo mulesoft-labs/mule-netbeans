@@ -29,20 +29,17 @@ import org.openide.util.NbPreferences;
  *
  * @author Facundo Lopez Kaufmann
  */
-public class PreferencesBasedStore implements Store<MuleRuntimeInformation> {
+public class PreferencesBasedStore implements MuleRuntimeStore {
 
     private static final String RUNTIMES_NODE = "nodes";
     private static final String NODES_RUNTIME_MH = "muleHome";
     private static final String NODES_RUNTIME_NAME = "name";
     private final ChangeSupport cs = new ChangeSupport(this);
     private final Preferences PREFERENCES = NbPreferences.forModule(MuleSupport.class).node(RUNTIMES_NODE);
-    
-    public static MuleRuntime getMuleRuntime(MuleRuntimeInformation information) {
-        return new DefaultMuleRuntime(information);
-    }
+
     
     @Override
-    public MuleRuntimeInformation get(String id) {
+    public MuleRuntime get(String id) {
         if(id == null || id.trim().length() == 0) {
             throw new IllegalStateException("Invalid id");
         }
@@ -51,9 +48,8 @@ public class PreferencesBasedStore implements Store<MuleRuntimeInformation> {
                 throw new IllegalStateException("Runtime not registered");
             }
             Preferences runtimeNode = PREFERENCES.node(id);
-            String name = runtimeNode.get(NODES_RUNTIME_NAME, null);
             String muleHome = runtimeNode.get(NODES_RUNTIME_MH, null);
-            return new MuleRuntimeInformation(id, name, new File(muleHome));
+            return new DefaultMuleRuntime(new File(muleHome));
         } catch (BackingStoreException ex) {
             Exceptions.printStackTrace(ex);
             throw new IllegalStateException("Could not process request", ex);
@@ -72,10 +68,12 @@ public class PreferencesBasedStore implements Store<MuleRuntimeInformation> {
     }
     
     @Override
-    public void store(MuleRuntimeInformation mri) {
-        Preferences runtimeNode = PREFERENCES.node(mri.getId());
-        runtimeNode.put(NODES_RUNTIME_NAME, mri.getName());
-        runtimeNode.put(NODES_RUNTIME_MH, mri.getMuleHome().getAbsolutePath());
+    public void store(MuleRuntime runtime) {
+        Preferences runtimeNode = PREFERENCES.node(runtime.getId());
+        if(runtime.getName() != null) {
+            runtimeNode.put(NODES_RUNTIME_NAME, runtime.getName());
+        }
+        runtimeNode.put(NODES_RUNTIME_MH, runtime.getMuleHome().getAbsolutePath());
         try {
             PREFERENCES.flush();
             cs.fireChange();
@@ -85,10 +83,10 @@ public class PreferencesBasedStore implements Store<MuleRuntimeInformation> {
     }
     
     @Override
-    public void remove(MuleRuntimeInformation mri) {
+    public void remove(MuleRuntime runtime) {
         try {
-            if(PREFERENCES.nodeExists(mri.getId())) {
-                PREFERENCES.node(mri.getId()).removeNode();
+            if(PREFERENCES.nodeExists(runtime.getId())) {
+                PREFERENCES.node(runtime.getId()).removeNode();
                 PREFERENCES.flush();
                 cs.fireChange();
             }

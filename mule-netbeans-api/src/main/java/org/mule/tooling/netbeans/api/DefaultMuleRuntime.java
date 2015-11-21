@@ -17,6 +17,7 @@ package org.mule.tooling.netbeans.api;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.UUID;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -27,32 +28,46 @@ import java.util.regex.Pattern;
  * @author Facundo Lopez Kaufmann
  */
 public class DefaultMuleRuntime implements MuleRuntime {
-    
+
     private static final Pattern MULE_BOOT_PATTERN = Pattern.compile("mule-module-(.*?)boot(.*?).jar"); // NOI18N
-    private static final String LIB_BOOT_SUBDIR = File.separator + "lib" + File.separator + "boot";
+    private static final Pattern MULE_PIDFILE_PATTERN = Pattern.compile("\\.mule(.*?)\\.pid"); // NOI18N
+    private static final String LIB_SUBDIR = File.separator + "lib";
+    private static final String LIB_BOOT_SUBDIR = LIB_SUBDIR + File.separator + "boot";
+    private static final String LIB_USER_SUBDIR = LIB_SUBDIR + File.separator + "user";
+    private static final String BIN_SUBDIR = File.separator + "bin";
     private static final String MF_SUPPORTED_JDKS = "Supported-Jdks";
     private static final String MF_IMPLEMENTATION_VENDOR_ID = Attributes.Name.IMPLEMENTATION_VENDOR_ID.toString();
     private static final String MF_SPECIFICATION_VERSION = Attributes.Name.SPECIFICATION_VERSION.toString();
-    private final MuleRuntimeInformation information;
+    private final File muleHome;
+    private String id;
     private JarFile bootJar;
     private RuntimeVersion version;
     private String supportedJDK;
 
-    public DefaultMuleRuntime(MuleRuntimeInformation information)  {
-        this.information = information;
+    public DefaultMuleRuntime(File muleHome) {
+        this.muleHome = muleHome;
         init();
     }
-    
+
     @Override
-    public MuleRuntimeInformation getInformation() {
-        return information;
+    public String getId() {
+        return id;
     }
-    
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    @Override
+    public String getName() {
+        return version.getBranch() + " " + version.getNumber();
+    }
+
     @Override
     public Status getStatus() {
-        return Status.DOWN;
+        return isRunning() ? Status.RUNNING : Status.DOWN;
     }
-    
+
     @Override
     public RuntimeVersion getVersion() {
         return version;
@@ -60,15 +75,58 @@ public class DefaultMuleRuntime implements MuleRuntime {
 
     @Override
     public File getMuleHome() {
-        return information.getMuleHome();
+        return muleHome;
+    }
+
+    @Override
+    public File getLibUserDir() {
+        return new File(getMuleHome().getAbsolutePath() + LIB_USER_SUBDIR);
+    }
+
+    protected File getLibBootDir() {
+        return new File(getMuleHome().getAbsolutePath() + LIB_BOOT_SUBDIR);
+    }
+
+    public boolean isRunning() {
+        File bin = new File(getMuleHome().getAbsolutePath() + BIN_SUBDIR);
+        if (!bin.exists()) {
+            return false;
+        }
+        File[] children = bin.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return MULE_PIDFILE_PATTERN.matcher(name).matches();
+            }
+        });
+        if (children.length == 0) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void register() {
+        if(id == null) {
+            this.id = UUID.randomUUID().toString();
+        }
+        MuleSupport.getStore().store(this);
+    }
+
+    @Override
+    public void unregister() {
+        MuleSupport.getStore().remove(this);
+        id = null;
     }
 
     private void init() {
-        if(!getMuleHome().exists()) {
+        if (!getMuleHome().exists()) {
             throw new IllegalStateException("Invalid Mule installation");
         }
-        File libBoot = new File(information.getMuleHome().getAbsolutePath() + LIB_BOOT_SUBDIR);
-        if(!libBoot.exists()) {
+        if (!getLibUserDir().exists()) {
+            throw new IllegalStateException("Invalid Mule installation");
+        }
+        File libBoot = getLibBootDir();
+        if (!libBoot.exists()) {
             throw new IllegalStateException("Invalid Mule installation");
         }
         File[] children = libBoot.listFiles(new FilenameFilter() {
@@ -77,7 +135,7 @@ public class DefaultMuleRuntime implements MuleRuntime {
                 return MULE_BOOT_PATTERN.matcher(name).matches();
             }
         });
-        if(children.length == 0) {
+        if (children.length == 0) {
             throw new IllegalStateException("Could not locate boot jar");
         }
         try {

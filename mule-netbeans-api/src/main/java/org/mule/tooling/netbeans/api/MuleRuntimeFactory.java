@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 facundolopezkaufmann.
+ * Copyright 2015 Facundo Lopez Kaufmann.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,7 @@ import java.io.File;
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface MuleRuntime {
-    public static final String BRANCH_MULE = "Mule";
-    public static final String BRANCH_API_GW ="API Gateway";
-    public static final String BRANCH_MULE_EE = "Mule EE";
-    
-    public MuleRuntimeInformation getInformation();
-    
-    public Status getStatus();
+public interface MuleRuntimeFactory {
 
-    public RuntimeVersion getVersion();
-    
-    public File getMuleHome();
+    public MuleRuntime create(File muleHome);
 }
