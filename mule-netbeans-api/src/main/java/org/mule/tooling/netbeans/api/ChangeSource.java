@@ -15,19 +15,16 @@
  */
 package org.mule.tooling.netbeans.api;
 
-import java.util.List;
+import javax.swing.event.ChangeListener;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface Store<T> {
-    
-    public T get(String id);
+public interface ChangeSource {
 
-    public List<String> getIds();
+    public void addChangeListener(ChangeListener listener);
 
-    public void store(T instance);
-    
-    public void remove(T instance);   
+    public void removeChangeListener(ChangeListener listener);
+
 }

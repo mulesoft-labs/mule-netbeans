@@ -21,25 +21,53 @@ import java.io.File;
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface MuleRuntime {
-    
+//TODO: replace file access with object listings
+public interface MuleRuntime extends ChangeSource {
+
     public static final String BRANCH_MULE = "Mule";
     public static final String BRANCH_API_GW = "API Gateway";
     public static final String BRANCH_MULE_EE = "Mule EE";
-    
+
     public String getId();
-    
+
     public String getName();
-    
-    public Status getStatus();
 
     public RuntimeVersion getVersion();
-    
+
     public File getMuleHome();
-    
+
     public File getLibUserDir();
+
+    public File getApplicationsDir();
+
+    public File getDomainsDir();
+
+    public Status getStatus();
+
+    public boolean isRunning();
+
+    public boolean canStart();
+
+    public void start();
+
+    public boolean canStop();
+
+    public void stop(boolean forced);
     
+    /**
+     * Returns if the mule runtime is registered in the
+     * {@link MuleRuntimeRegistry} or not. This should be equivalent to:
+     * 
+     * muleRuntimeRegistry.isRegistered(muleRuntime);
+     *
+     * @return if the runtime is running or not.
+     */
+    public boolean isRegistered();
+    
+    /**
+     * Registers
+     */
     public void register();
-    
+
     public void unregister();
 }

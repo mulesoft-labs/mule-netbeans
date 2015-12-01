@@ -25,10 +25,12 @@ import org.openide.util.Lookup;
 public class MuleSupport {
     
     private static final MuleRuntimeStore STORE;
+    private static final MuleRuntimeRegistry REGISTRY;
     private static final MuleRuntimeFactory FACTORY;
     static {
         FACTORY = Lookup.getDefault().lookup(MuleRuntimeFactory.class);
         STORE = Lookup.getDefault().lookup(MuleRuntimeStore.class);
+        REGISTRY = Lookup.getDefault().lookup(MuleRuntimeRegistry.class);
     }
     
     public static MuleRuntime getMuleRuntime(File muleHome) {
@@ -41,5 +43,9 @@ public class MuleSupport {
     
     public static MuleRuntimeStore getStore() {
         return STORE;
+    }
+    
+    public static MuleRuntimeRegistry getRegistry() {
+        return REGISTRY;
     }
 }

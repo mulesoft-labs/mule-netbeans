@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.api;
+package org.mule.tooling.netbeans.runtime;
 
-import java.util.List;
+import org.mule.tooling.netbeans.api.MuleRuntime;
+import org.openide.nodes.Node;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface Store<T> {
-    
-    public T get(String id);
+public class RuntimeCookie implements Node.Cookie {
 
-    public List<String> getIds();
+    private final MuleRuntime runtime;
 
-    public void store(T instance);
-    
-    public void remove(T instance);   
+    public RuntimeCookie(MuleRuntime runtime) {
+        this.runtime = runtime;
+    }
+
+    public MuleRuntime getRuntime() {
+        return runtime;
+    }
 }

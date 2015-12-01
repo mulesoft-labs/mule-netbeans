@@ -19,6 +19,6 @@ package org.mule.tooling.netbeans.api;
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface MuleRuntimeStore extends Store<MuleRuntime> {
+public interface MuleRuntimeStore extends Store<MuleRuntime>, ChangeSource {
     
 }

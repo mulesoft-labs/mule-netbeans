@@ -4,11 +4,12 @@
     <parent>
         <groupId>org.mule.tooling.netbeans</groupId>
         <artifactId>mule-netbeans</artifactId>
-        <version>0.1</version>
+        <version>1.0</version>
     </parent>
     <artifactId>mule-netbeans-api</artifactId>
     <packaging>nbm</packaging>
     <name>Mule API</name>
+    <version>0.2</version>
     <build>
         <plugins>
             <plugin>
@@ -44,6 +45,26 @@
         <dependency>
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-openide-util-lookup</artifactId>
+            <version>${netbeans-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-execution</artifactId>
+            <version>${netbeans-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-filesystems</artifactId>
+            <version>${netbeans-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-modules-extexecution</artifactId>
+            <version>${netbeans-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-modules-extexecution-base</artifactId>
             <version>${netbeans-version}</version>
         </dependency>
         <dependency>

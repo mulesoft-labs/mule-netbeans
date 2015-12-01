@@ -15,16 +15,17 @@
  */
 package org.mule.tooling.netbeans.api;
 
-import java.io.File;
-
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public class DefaultMuleRuntimeFactory implements MuleRuntimeFactory {
+public interface MuleRuntimeRegistry {
 
-    @Override
-    public MuleRuntime create(File muleHome) {
-        return new DefaultMuleRuntime(muleHome);
-    }
+    public String newId();
+
+    public boolean isRegistered(MuleRuntime runtime);
+
+    public void register(MuleRuntime runtime);
+
+    public void unregister(MuleRuntime runtime);
 }

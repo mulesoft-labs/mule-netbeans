@@ -42,6 +42,9 @@ public class IconUtil {
     private static final String FOLDER_ICON_PATH = "org/mule/tooling/netbeans/runtime/resources/defaultFolder.gif"; // NOI18N
     @StaticResource
     private static final String BADGE_LIBRARIES_PATH = "org/mule/tooling/netbeans/runtime/resources/libraries-badge.png"; // NOI18N
+    @StaticResource
+    private static final String MULE_ICON = "org/mule/tooling/netbeans/runtime/resources/mule16.png";  //NOI18N
+
     
     /**
      * Returns default folder icon as {@link java.awt.Image}. Never returns
@@ -67,7 +70,7 @@ public class IconUtil {
     }
     
     public static Image getTreeFolderIconWithBadge(boolean opened, Image badge) {
-        return ImageUtilities.mergeImages(IconUtil.getTreeFolderIcon(true),
+        return ImageUtilities.mergeImages(IconUtil.getTreeFolderIcon(opened),
                 badge, //NOI18N
                 8, 8);
     }
@@ -78,5 +81,9 @@ public class IconUtil {
     
     public static Image getJarIcon() {
         return ImageUtilities.loadImage(JAR_ICON_BASE, true);
+    }
+    
+    public static Image getMuleIcon() {
+        return ImageUtilities.loadImage(MULE_ICON, true);
     }
 }

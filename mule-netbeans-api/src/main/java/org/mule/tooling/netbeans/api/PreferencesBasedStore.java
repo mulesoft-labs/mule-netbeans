@@ -24,11 +24,13 @@ import javax.swing.event.ChangeListener;
 import org.openide.util.ChangeSupport;
 import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
+@ServiceProvider(service = MuleRuntimeStore.class)
 public class PreferencesBasedStore implements MuleRuntimeStore {
 
     private static final String RUNTIMES_NODE = "nodes";
@@ -49,7 +51,7 @@ public class PreferencesBasedStore implements MuleRuntimeStore {
             }
             Preferences runtimeNode = PREFERENCES.node(id);
             String muleHome = runtimeNode.get(NODES_RUNTIME_MH, null);
-            return new DefaultMuleRuntime(new File(muleHome));
+            return MuleSupport.getMuleRuntime(new File(muleHome));
         } catch (BackingStoreException ex) {
             Exceptions.printStackTrace(ex);
             throw new IllegalStateException("Could not process request", ex);

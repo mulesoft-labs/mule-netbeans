@@ -15,10 +15,9 @@
  */
 package org.mule.tooling.netbeans.runtime;
 
-import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.List;
-import javax.swing.AbstractAction;
 import javax.swing.Action;
 import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.openide.actions.DeleteAction;
@@ -27,39 +26,43 @@ import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
 import org.openide.util.Exceptions;
-import org.openide.util.NbBundle;
+import org.openide.util.NbBundle.Messages;
+import org.openide.util.RequestProcessor;
+import org.openide.util.actions.SystemAction;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-@NbBundle.Messages({
+@Messages({
         "SingleRuntimeNode_shortDescription_name=Name:<b> {0} </b><p>",
         "SingleRuntimeNode_shortDescription_version=Version:<b> {0} </b><p>",
         "SingleRuntimeNode_shortDescription_muleHome=Mule Home:<b> {0} </b><p>",
         "SingleRuntimeNode_shortDescription_status=Status:<b> {0} </b><p>",
     })
 public class SingleRuntimeNode extends AbstractNode {
-    
+
+    protected static final RequestProcessor RP = new RequestProcessor("Mule server control", 10);
+
     static final String BADGE = "org/mule/tooling/netbeans/runtime/resources/mule16.png"; // NOI18N
 
-    private MuleRuntime muleRuntime;
-    
     public SingleRuntimeNode(MuleRuntime muleRuntime) {
         super(Children.create(new RuntimeNodeChildFactory(muleRuntime), true));
-        this.muleRuntime = muleRuntime;
+        setName(muleRuntime.getId());
         setDisplayName(muleRuntime.getName());
         setIconBaseWithExtension(BADGE);
+        getCookieSet().add(new RuntimeCookie(muleRuntime));
     }
 
     @Override
     public void destroy() throws IOException {
-        muleRuntime.unregister();
         super.destroy();
+        getMuleRuntime().unregister();
     }
     
     @Override 
     public String getShortDescription() {
+        MuleRuntime muleRuntime = getMuleRuntime();
         StringBuilder buffer = new StringBuilder();
         buffer.append("<html>");//NOI18N
         buffer.append(Bundle.SingleRuntimeNode_shortDescription_name(muleRuntime.getName()));
@@ -68,6 +71,10 @@ public class SingleRuntimeNode extends AbstractNode {
         buffer.append(Bundle.SingleRuntimeNode_shortDescription_status(muleRuntime.getStatus()));
         buffer.append("</html>");//NOI18N
         return buffer.toString();
+    }
+
+    protected MuleRuntime getMuleRuntime() {
+        return getCookieSet().getCookie(RuntimeCookie.class).getRuntime();
     }
 
     @Override
@@ -80,38 +87,19 @@ public class SingleRuntimeNode extends AbstractNode {
     @Override
     public Action[] getActions(boolean context) {
         return new Action[]{
-            new StartAction(),
-            new StopAction(),
+            SystemAction.get(StartRuntimeAction.class),
+            SystemAction.get(StopRuntimeAction.class),
+            SystemAction.get(ForcedStopRuntimeAction.class),
             null,
             DeleteAction.get(DeleteAction.class),
         };
-    }
-    
-    public class StartAction extends AbstractAction {
-        
-        public StartAction() {
-            putValue(Action.NAME, "Start");
-        }
-        @Override
-        public void actionPerformed(ActionEvent e) {
-        }
-    }
-    
-    public class StopAction extends AbstractAction {
-        
-        public StopAction() {
-            putValue(Action.NAME, "Stop");
-            setEnabled(false);
-        }
-        @Override
-        public void actionPerformed(ActionEvent e) {
-        }
     }
     
     //--- ChildFactory ---
     
     private static class RuntimeNodeChildFactory extends ChildFactory.Detachable<Class<? extends AbstractNode>> {
         private MuleRuntime runtime;
+
         private RuntimeNodeChildFactory(MuleRuntime muleRuntime) {
             this.runtime = muleRuntime;
         }
@@ -126,17 +114,9 @@ public class SingleRuntimeNode extends AbstractNode {
 
         @Override
         protected Node createNodeForKey(Class<? extends AbstractNode> key) {
-            if(key.equals(UserLibrariesNode.class)) {
-                return new UserLibrariesNode(runtime);
-//                File libUserFolder  = new File(runtime.getMuleHome() + File.separator + "lib" + File.separator + "user");
-//                System.out.println(libUserFolder);
-//                FileObject fo = FileUtil.toFileObject(libUserFolder);
-//                System.out.println(fo);
-//                DataFolder f = DataFolder.findFolder(fo);
-//                return f.getNodeDelegate();
-            }
             try {
-                return key.newInstance();
+                Constructor<? extends AbstractNode> constructor = key.getConstructor(MuleRuntime.class);
+                return constructor.newInstance(runtime);
             } catch (Exception ex) {
                 Exceptions.printStackTrace(ex);
                 throw new IllegalStateException(ex);

@@ -81,7 +81,6 @@ public class MuleHomeView extends javax.swing.JPanel {
             btnOk.setEnabled(false);
             return;
         }
-        
         try {
             MuleRuntime support = getMuleRuntime();
             txtVersion.setText(support.getVersion().toString());

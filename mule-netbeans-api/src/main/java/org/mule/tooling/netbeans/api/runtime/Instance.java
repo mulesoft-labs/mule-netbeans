@@ -13,21 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.api;
+package org.mule.tooling.netbeans.api.runtime;
 
-import java.util.List;
+import org.mule.tooling.netbeans.api.Status;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface Store<T> {
+public interface Instance {
     
-    public T get(String id);
-
-    public List<String> getIds();
-
-    public void store(T instance);
+    public void setUp();
     
-    public void remove(T instance);   
+    public void tearDown();
+
+    public Status getStatus();
+
+    public boolean isRunning();
+
+    public boolean canStart();
+
+    public void start();
+
+    public boolean canStop();
+
+    public void stop(boolean forced);
 }
