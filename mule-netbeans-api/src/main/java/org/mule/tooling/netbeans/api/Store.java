@@ -18,7 +18,7 @@ package org.mule.tooling.netbeans.api;
 import java.util.List;
 
 /**
- *
+ * 
  * @author Facundo Lopez Kaufmann
  */
 public interface Store<T> {
