@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Facundo Lopez Kaufmann.
+ * Copyright 2016 Facundo Lopez Kaufmann.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,7 @@ package org.mule.tooling.netbeans.api;
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface MuleRuntimeRegistry {
+public interface Library {
 
-    public boolean isRegistered(MuleRuntime runtime);
-
-    public void register(MuleRuntime runtime);
-
-    public void unregister(MuleRuntime runtime);
+    public String getName();
 }

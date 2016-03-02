@@ -16,17 +16,42 @@
 package org.mule.tooling.netbeans.api.runtime;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 import javax.swing.event.ChangeListener;
+import org.mule.tooling.netbeans.api.Application;
+import org.mule.tooling.netbeans.api.Domain;
 import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.mule.tooling.netbeans.api.MuleRuntimeRegistry;
 import org.mule.tooling.netbeans.api.RuntimeVersion;
 import org.mule.tooling.netbeans.api.Status;
 import org.openide.util.ChangeSupport;
+import org.openide.util.Lookup;
+import org.mule.tooling.netbeans.api.IDGenerationStrategy;
+import org.mule.tooling.netbeans.api.Library;
+import static org.mule.tooling.netbeans.api.MuleRuntime.BRANCH_API_GW;
+import static org.mule.tooling.netbeans.api.MuleRuntime.BRANCH_MULE;
+import static org.mule.tooling.netbeans.api.MuleRuntime.BRANCH_MULE_EE;
+import org.netbeans.api.extexecution.ExecutionDescriptor;
+import org.netbeans.api.extexecution.ExecutionService;
+import org.netbeans.api.extexecution.ExternalProcessBuilder;
+import org.openide.filesystems.FileAttributeEvent;
+import org.openide.filesystems.FileChangeListener;
+import org.openide.filesystems.FileEvent;
+import org.openide.filesystems.FileRenameEvent;
+import org.openide.filesystems.FileUtil;
+import org.openide.util.Exceptions;
+import org.openide.util.RequestProcessor;
 
 /**
  *
@@ -43,18 +68,22 @@ public class DefaultMuleRuntime implements MuleRuntime {
     private static final String DOMAINS_SUBDIR = File.separator + "domains";
     private static final String MF_IMPLEMENTATION_VENDOR_ID = Attributes.Name.IMPLEMENTATION_VENDOR_ID.toString();
     private static final String MF_SPECIFICATION_VERSION = Attributes.Name.SPECIFICATION_VERSION.toString();
+    private static final IDGenerationStrategy IDGENERATOR = Lookup.getDefault().lookup(IDGenerationStrategy.class);
+    private static final RequestProcessor RP = new RequestProcessor("Mule Instance", 5); // NOI18N
     private final ChangeSupport cs = new ChangeSupport(this);
     private final MuleRuntimeRegistry registry;
     private final File muleHome;
-    private Instance instance;
+    private final PidFileChangeListener pidFileChangeListener = new PidFileChangeListener();
+    private final AtomicReference<Future<Integer>> processHolder = new AtomicReference<Future<Integer>>();
+    private String wrapperExec;
     private String id;
     private JarFile bootJar;
     private RuntimeVersion version;
+    private Status status = Status.DOWN;
 
     public DefaultMuleRuntime(MuleRuntimeRegistry registry, File muleHome) {
         this.registry = registry;
         this.muleHome = muleHome;
-        instance = new OwnedInstance(this);
         init();
     }
     
@@ -68,13 +97,14 @@ public class DefaultMuleRuntime implements MuleRuntime {
         if (!getMuleHome().exists()) {
             throw new IllegalStateException("Invalid Mule installation");
         }
-        if (!getLibUserDir().exists()) {
+        if (!new File(muleHome, LIB_SUBDIR).exists()) {
             throw new IllegalStateException("Invalid Mule installation");
         }
-        File libBoot = getLibBootDir();
+        File libBoot = new File(muleHome, LIB_BOOT_SUBDIR);
         if (!libBoot.exists()) {
             throw new IllegalStateException("Invalid Mule installation");
         }
+        wrapperExec = RuntimeUtils.detectWrapperExec(muleHome);
         File[] children = libBoot.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
@@ -111,10 +141,13 @@ public class DefaultMuleRuntime implements MuleRuntime {
             throw new IllegalStateException("Runtime already registered");
         }
         if (id == null) {
-            this.id = registry.newId();
+            this.id = IDGENERATOR.newId();
         }
         registry.register(this);
-        instance.setUp();
+        FileUtil.addFileChangeListener(pidFileChangeListener, getPidFile());
+        FileUtil.addFileChangeListener(pidFileChangeListener, new File(muleHome, LIB_USER_SUBDIR));
+        FileUtil.addFileChangeListener(pidFileChangeListener, new File(muleHome, APPS_SUBDIR));
+        FileUtil.addFileChangeListener(pidFileChangeListener, new File(muleHome, DOMAINS_SUBDIR));
         cs.fireChange();
     }
 
@@ -122,7 +155,7 @@ public class DefaultMuleRuntime implements MuleRuntime {
     public void unregister() {
         registry.unregister(this);
         id = null;
-        instance.tearDown();
+        FileUtil.removeFileChangeListener(pidFileChangeListener);
         cs.fireChange();
     }
 
@@ -140,32 +173,123 @@ public class DefaultMuleRuntime implements MuleRuntime {
 
     @Override
     public Status getStatus() {
-        return instance.getStatus();
+        return status;
     }
 
     @Override
     public boolean isRunning() {
-        return instance.isRunning();
+        File pidFile = getPidFile();
+        if (!pidFile.exists()) {
+            return false;
+        }
+        try {
+            String pid = getPidFromFile();
+            boolean processRunning = RuntimeUtils.isProcessRunning(pid);
+            if (!processRunning) {
+                pidFile.delete();
+            }
+            return processRunning;
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+            return false;
+        }
     }
     
     @Override
     public boolean canStart() {
-        return instance.canStart();
+        return wrapperExec != null;
     }
 
     @Override
     public void start() {
-        instance.start();
+        if (processHolder.get() != null) {
+            throw new IllegalStateException("Instance already running");
+        }
+        RP.post(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (processHolder) {
+                    if (processHolder.get() != null) {
+                        return;
+                    }
+                    ExecutionDescriptor descriptor = new ExecutionDescriptor()
+                            .frontWindow(true)
+                            .controllable(true)
+                            .postExecution(new Runnable() {
+                                @Override
+                                public void run() {
+                                    processHolder.set(null);
+                                }
+                            });
+                    ExecutionService service = ExecutionService.newService(startProcessBuilder(), descriptor, getName());
+                    processHolder.set(service.run());
+                }
+            }
+        });
+    }
+
+    private ExternalProcessBuilder startProcessBuilder() {
+        //TODO: allow all the parameter to be configurable
+        String muleHomeString = getMuleHome().getAbsolutePath();
+        ExternalProcessBuilder processBuilder = new ExternalProcessBuilder(wrapperExec)
+                .addArgument("--console")
+                .addEnvironmentVariable("MULE_APP_LONG", "Mule")
+                .addEnvironmentVariable("MULE_APP", "mule")
+                .addEnvironmentVariable("PWD", muleHomeString + File.separator + "bin")
+                .addEnvironmentVariable("MULE_HOME", muleHomeString)
+                .addEnvironmentVariable("MULE_BASE", muleHomeString)
+                .workingDirectory(new File(muleHomeString, "/bin"));
+        processBuilder = processBuilder.addArgument(muleHomeString + File.separator + "conf" + File.separator + "wrapper.conf");
+//        processBuilder = processBuilder.addArgument("wrapper.console.format=PM");
+        processBuilder = processBuilder.addArgument("wrapper.console.format=M");
+        processBuilder = processBuilder.addArgument("wrapper.console.flush=TRUE");
+        processBuilder = processBuilder.addArgument("wrapper.syslog.ident=mule");
+        processBuilder = processBuilder.addArgument("wrapper.pidfile=" + getPidFile().getAbsolutePath());
+        processBuilder = processBuilder.addArgument("wrapper.working.dir=" + muleHomeString);
+        for (int i = 1; i < 9; i++) {
+            processBuilder = processBuilder.addArgument("wrapper.app.parameter." + i + "=console0");
+        }
+        processBuilder = processBuilder.addArgument("wrapper.app.parameter.9=");
+        return processBuilder;
+    }
+
+    private File getPidFile() {
+        return new File(getMuleHome(), BIN_SUBDIR + File.separator + RuntimeUtils.pidFileForVersion(version));
+    }
+    
+    private String getPidFromFile() throws IOException {
+        return new String(Files.readAllBytes(getPidFile().toPath())).replaceAll("[ \n]", "");
     }
     
     @Override
     public boolean canStop() {
-        return instance.canStop();
+        return processHolder.get() != null;
     }
 
     @Override
-    public void stop(boolean forced) {
-        instance.stop(forced);
+    public void stop(final boolean forced) {
+        if (processHolder.get() == null) {
+            throw new IllegalStateException("Instance not running");
+        }
+        RP.post(new Runnable() {
+            @Override
+            public void run() {
+                if (processHolder.get() == null) {
+                    return;
+                }
+                if (forced) {
+                    processHolder.get().cancel(true);
+                } else if (RuntimeUtils.isWindows()) {
+                    processHolder.get().cancel(false);
+                } else {
+                    try {
+                        RuntimeUtils.softStop(getPidFromFile());
+                    } catch (IOException ex) {
+                        Exceptions.printStackTrace(ex);
+                    }
+                }
+            }
+        });
     }
     
     //---MuleRuntime implementation
@@ -191,25 +315,79 @@ public class DefaultMuleRuntime implements MuleRuntime {
     }
 
     @Override
-    public File getLibUserDir() {
-        return new File(getMuleHome().getAbsolutePath() + LIB_USER_SUBDIR);
+    public List<Application> getApplications() {
+        File[] children = new File(muleHome, APPS_SUBDIR).listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                return pathname.isDirectory();
+            }
+        });
+        List<Application> apps = new ArrayList<Application>();
+        for (File file : children) {
+            apps.add(new DirectoryApplication(file));
+        }
+        return apps;
     }
 
     @Override
-    public File getApplicationsDir() {
-        return new File(getMuleHome().getAbsolutePath() + APPS_SUBDIR);
+    public List<Domain> getDomains() {
+        File[] children = new File(muleHome, DOMAINS_SUBDIR).listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                return pathname.isDirectory();
+            }
+        });
+        List<Domain> domains = new ArrayList<Domain>();
+        for (File file : children) {
+            domains.add(new DirectoryDomain(file));
+        }
+        return domains;
     }
 
+    private static final Pattern JAR_PATTERN = Pattern.compile("(.*?)\\.jar"); // NOI18N
     @Override
-    public File getDomainsDir() {
-        return new File(getMuleHome().getAbsolutePath() + DOMAINS_SUBDIR);
+    public List<Library> getLibraries() {
+        File[] children = new File(muleHome, LIB_SUBDIR).listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return JAR_PATTERN.matcher(name).matches();
+            }
+        });
+        List<Library> libs = new ArrayList<Library>(children.length);
+        for (File file : children) {
+            libs.add(new JarLibrary(file));
+        }
+        return libs;
     }
 
-    protected File getLibBootDir() {
-        return new File(getMuleHome().getAbsolutePath() + LIB_BOOT_SUBDIR);
-    }
-    
-    public File getPidFile() {
-        return new File(getMuleHome(), BIN_SUBDIR + File.separator + RuntimeUtils.pidFileForVersion(version));
+    private class PidFileChangeListener implements FileChangeListener {
+
+        @Override
+        public void fileFolderCreated(FileEvent fe) {
+        }
+
+        @Override
+        public void fileDataCreated(FileEvent fe) {
+            update();
+        }
+
+        @Override
+        public void fileChanged(FileEvent fe) {
+            update();
+        }
+
+        @Override
+        public void fileDeleted(FileEvent fe) {
+            update();
+        }
+
+        @Override
+        public void fileRenamed(FileRenameEvent fe) {
+            update();
+        }
+
+        @Override
+        public void fileAttributeChanged(FileAttributeEvent fe) {
+        }
     }
 }

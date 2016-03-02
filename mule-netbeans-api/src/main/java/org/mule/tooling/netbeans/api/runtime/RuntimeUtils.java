@@ -16,6 +16,7 @@
 package org.mule.tooling.netbeans.api.runtime;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.mule.tooling.netbeans.api.RuntimeVersion;
@@ -122,5 +123,39 @@ public class RuntimeUtils {
             Exceptions.printStackTrace(ex);
             return false;
         }
+    }
+
+    public static String detectWrapperExec(File muleHome) {
+        File libBootExec = new File(muleHome, "/lib/boot/exec");
+        File exec;
+        if (RuntimeUtils.RUNNING_OS.equals(RuntimeUtils.OS.MACOS)) {
+            exec = new File(libBootExec, "wrapper-macosx-universal-32");
+            if (exec.exists()) {
+                return exec.getAbsolutePath();
+            }
+        } else if (RuntimeUtils.RUNNING_OS.equals(RuntimeUtils.OS.WINDOWS)) {
+            if (RuntimeUtils.IS64) {
+                exec = new File(libBootExec, "wrapper-windows-x86-64.exe");
+                if (exec.exists()) {
+                    return exec.getAbsolutePath();
+                }
+            }
+            exec = new File(libBootExec, "wrapper-windows-x86-32.exe");
+            if (exec.exists()) {
+                return exec.getAbsolutePath();
+            }
+        } else if (RuntimeUtils.RUNNING_OS.equals(RuntimeUtils.OS.LINUX)) {
+            if (RuntimeUtils.IS64) {
+                exec = new File(libBootExec, "wrapper-linux-x86-64");
+                if (exec.exists()) {
+                    return exec.getAbsolutePath();
+                }
+            }
+            exec = new File(libBootExec, "wrapper-linux-x86-32");
+            if (exec.exists()) {
+                return exec.getAbsolutePath();
+            }
+        }
+        return null;
     }
 }

@@ -17,20 +17,16 @@ package org.mule.tooling.netbeans.runtime;
 
 import java.awt.Image;
 import java.awt.event.ActionEvent;
-import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.List;
 import java.util.regex.Pattern;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import org.mule.tooling.netbeans.api.Library;
 import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.openide.actions.DeleteAction;
-import org.openide.filesystems.FileAttributeEvent;
-import org.openide.filesystems.FileChangeListener;
-import org.openide.filesystems.FileEvent;
-import org.openide.filesystems.FileRenameEvent;
-import org.openide.filesystems.FileUtil;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Children;
@@ -87,7 +83,7 @@ public class UserLibrariesNode extends AbstractNode {
     }
 
     //--- ChildFactory ---
-    private static class LibrariesChildFactory extends ChildFactory.Detachable<String> implements FileChangeListener {
+    private static class LibrariesChildFactory extends ChildFactory.Detachable<Library> implements ChangeListener {
 
         private MuleRuntime runtime;
 
@@ -96,68 +92,37 @@ public class UserLibrariesNode extends AbstractNode {
         }
 
         @Override
-        protected boolean createKeys(List<String> toPopulate) {
-            File[] children = runtime.getLibUserDir().listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return JAR_PATTERN.matcher(name).matches();
-                }
-            });
-            for (File file : children) {
-                toPopulate.add(file.getName());
-            }
+        protected boolean createKeys(List<Library> toPopulate) {
+            toPopulate.addAll(runtime.getLibraries());
             return true;
         }
 
         @Override
-        protected Node createNodeForKey(String key) {
+        protected Node createNodeForKey(Library key) {
             return new LibraryNode(key);
         }
 
         @Override
         protected void addNotify() {
-            FileUtil.addFileChangeListener(this, runtime.getLibUserDir());
+            runtime.addChangeListener(this);
         }
 
         @Override
         protected void removeNotify() {
-            FileUtil.removeFileChangeListener(this, runtime.getLibUserDir());
+            runtime.removeChangeListener(this);
         }
 
         @Override
-        public void fileFolderCreated(FileEvent fe) {
-        }
-
-        @Override
-        public void fileDataCreated(FileEvent fe) {
+        public void stateChanged(ChangeEvent e) {
             refresh(false);
-        }
-
-        @Override
-        public void fileChanged(FileEvent fe) {
-            refresh(false);
-        }
-
-        @Override
-        public void fileDeleted(FileEvent fe) {
-            refresh(false);
-        }
-
-        @Override
-        public void fileRenamed(FileRenameEvent fe) {
-            refresh(false);
-        }
-
-        @Override
-        public void fileAttributeChanged(FileAttributeEvent fe) {
         }
     }
 
     public static class LibraryNode extends AbstractNode {
 
-        public LibraryNode(String jar) {
+        public LibraryNode(Library jar) {
             super(Children.LEAF);
-            setDisplayName(jar);
+            setDisplayName(jar.getName());
         }
 
         @Override

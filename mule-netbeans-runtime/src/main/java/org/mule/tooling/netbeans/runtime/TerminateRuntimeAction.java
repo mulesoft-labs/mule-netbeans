@@ -26,11 +26,11 @@ import org.openide.util.actions.NodeAction;
  * @author Facundo Lopez Kaufmann
  */
 @Messages({
-    "ForcedStopRuntimeAction_name=Forced Stop"
+    "TerminateRuntimeAction_name=Forced Stop"
 })
-public class ForcedStopRuntimeAction extends NodeAction {
+public class TerminateRuntimeAction extends NodeAction {
 
-    public ForcedStopRuntimeAction() {
+    public TerminateRuntimeAction() {
     }
 
     @Override
@@ -58,7 +58,7 @@ public class ForcedStopRuntimeAction extends NodeAction {
 
     @Override
     public String getName() {
-        return Bundle.ForcedStopRuntimeAction_name();
+        return Bundle.TerminateRuntimeAction_name();
     }
 
     @Override

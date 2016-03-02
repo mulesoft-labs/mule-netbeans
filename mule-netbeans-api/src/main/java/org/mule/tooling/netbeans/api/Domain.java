@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Facundo Lopez Kaufmann.
+ * Copyright 2016 Facundo Lopez Kaufmann.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.api.runtime;
-
-import org.mule.tooling.netbeans.api.Status;
+package org.mule.tooling.netbeans.api;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface Instance {
-    
-    public void setUp();
-    
-    public void tearDown();
+public interface Domain {
 
-    public Status getStatus();
-
-    public boolean isRunning();
-
-    public boolean canStart();
-
-    public void start();
-
-    public boolean canStop();
-
-    public void stop(boolean forced);
+    public String getName();
 }

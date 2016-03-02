@@ -26,6 +26,7 @@ import org.openide.util.ImageUtilities;
  * @author Facundo Lopez Kaufmann
  */
 public class IconUtil {
+
     @StaticResource
     private static final String MULE_RUNTIME_ICON_BASE = "org/mule/tooling/netbeans/runtime/resources/mule16.png";  //NOI18N
     @StaticResource
@@ -44,14 +45,23 @@ public class IconUtil {
     private static final String BADGE_LIBRARIES_PATH = "org/mule/tooling/netbeans/runtime/resources/libraries-badge.png"; // NOI18N
     @StaticResource
     private static final String MULE_ICON = "org/mule/tooling/netbeans/runtime/resources/mule16.png";  //NOI18N
+    @StaticResource
+    private static final String MULE_BADGE_ICON = "org/mule/tooling/netbeans/runtime/resources/mule3-badge.png";  //NOI18N
+    @StaticResource
+    private static final String CONFIG_ICON = "org/mule/tooling/netbeans/runtime/resources/config-badge.png";  //NOI18N
+    @StaticResource
+    private static final String SERVER_ICON = "org/mule/tooling/netbeans/runtime/resources/server2.png";  //NOI18N
+    @StaticResource
+    private static final String SERVER_BADGE_ICON = "org/mule/tooling/netbeans/runtime/resources/server-badge.png";  //NOI18N
+    @StaticResource
+    private static final String RUNNING_BADGE_ICON = "org/mule/tooling/netbeans/runtime/resources/running-badge.png";  //NOI18N
 
-    
     /**
      * Returns default folder icon as {@link java.awt.Image}. Never returns
      * <code>null</code>.
      *
      * @param opened wheter closed or opened icon should be returned.
-     * 
+     *
      * copied from apisupport/project
      */
     public static Image getTreeFolderIcon(boolean opened) {
@@ -68,22 +78,38 @@ public class IconUtil {
         assert base != null;
         return base;
     }
-    
+
     public static Image getTreeFolderIconWithBadge(boolean opened, Image badge) {
         return ImageUtilities.mergeImages(IconUtil.getTreeFolderIcon(opened),
                 badge, //NOI18N
                 8, 8);
     }
-    
+
     public static Image getLibraryBadge() {
         return ImageUtilities.loadImage(BADGE_LIBRARIES_PATH);
     }
-    
+
     public static Image getJarIcon() {
         return ImageUtilities.loadImage(JAR_ICON_BASE, true);
     }
-    
+
     public static Image getMuleIcon() {
         return ImageUtilities.loadImage(MULE_ICON, true);
+    }
+
+    public static Image getConfigIcon() {
+        return ImageUtilities.loadImage(CONFIG_ICON, true);
+    }
+
+    public static Image getMuleServerIcon(boolean isRunning) {
+        Image icon = ImageUtilities.mergeImages(ImageUtilities.loadImage(SERVER_ICON),
+                ImageUtilities.loadImage(MULE_BADGE_ICON), //NOI18N
+                8, 0);
+        if (isRunning) {
+            icon = ImageUtilities.mergeImages(icon,
+                    ImageUtilities.loadImage(RUNNING_BADGE_ICON), //NOI18N
+                    9, 9);
+        }
+        return icon;
     }
 }

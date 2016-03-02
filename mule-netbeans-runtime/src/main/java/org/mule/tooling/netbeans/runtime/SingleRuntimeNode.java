@@ -15,16 +15,23 @@
  */
 package org.mule.tooling.netbeans.runtime;
 
+import java.awt.Image;
+import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.List;
 import javax.swing.Action;
 import org.mule.tooling.netbeans.api.MuleRuntime;
+import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.actions.DeleteAction;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
+import org.openide.nodes.NodeEvent;
+import org.openide.nodes.NodeListener;
+import org.openide.nodes.NodeMemberEvent;
+import org.openide.nodes.NodeReorderEvent;
 import org.openide.util.Exceptions;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.RequestProcessor;
@@ -42,22 +49,53 @@ import org.openide.util.actions.SystemAction;
     })
 public class SingleRuntimeNode extends AbstractNode {
 
+    @StaticResource
+    private static final String SERVER_ICON = "org/mule/tooling/netbeans/runtime/resources/server2.png";  //NOI18N
     protected static final RequestProcessor RP = new RequestProcessor("Mule server control", 10);
-
-    static final String BADGE = "org/mule/tooling/netbeans/runtime/resources/mule16.png"; // NOI18N
 
     public SingleRuntimeNode(MuleRuntime muleRuntime) {
         super(Children.create(new RuntimeNodeChildFactory(muleRuntime), true));
         setName(muleRuntime.getId());
         setDisplayName(muleRuntime.getName());
-        setIconBaseWithExtension(BADGE);
+        setIconBaseWithExtension(SERVER_ICON);
         getCookieSet().add(new RuntimeCookie(muleRuntime));
+        addNodeListener(new NodeListener(){
+            @Override
+            public void childrenAdded(NodeMemberEvent ev) {
+            }
+
+            @Override
+            public void childrenRemoved(NodeMemberEvent ev) {
+            }
+
+            @Override
+            public void childrenReordered(NodeReorderEvent ev) {
+            }
+
+            @Override
+            public void nodeDestroyed(NodeEvent ev) {
+                getMuleRuntime().unregister();
+            }
+
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+            }
+        });
     }
+
+//    @Override
+//    public Image getIcon(int type) {
+//        return IconUtil.getMuleServerIcon(getMuleRuntime().isRunning());
+//    }
+//
+//    @Override
+//    public Image getOpenedIcon(int type) {
+//        return getIcon(type);
+//    }
 
     @Override
     public void destroy() throws IOException {
         super.destroy();
-        getMuleRuntime().unregister();
     }
     
     @Override 
@@ -89,7 +127,8 @@ public class SingleRuntimeNode extends AbstractNode {
         return new Action[]{
             SystemAction.get(StartRuntimeAction.class),
             SystemAction.get(StopRuntimeAction.class),
-            SystemAction.get(ForcedStopRuntimeAction.class),
+            null,
+            SystemAction.get(TerminateRuntimeAction.class),
             null,
             DeleteAction.get(DeleteAction.class),
         };

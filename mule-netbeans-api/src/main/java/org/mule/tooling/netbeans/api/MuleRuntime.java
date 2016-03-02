@@ -16,12 +16,12 @@
 package org.mule.tooling.netbeans.api;
 
 import java.io.File;
+import java.util.List;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-//TODO: replace file access with object listings
 public interface MuleRuntime extends ChangeSource {
 
     public static final String BRANCH_MULE = "Mule";
@@ -35,12 +35,12 @@ public interface MuleRuntime extends ChangeSource {
     public RuntimeVersion getVersion();
 
     public File getMuleHome();
-
-    public File getLibUserDir();
-
-    public File getApplicationsDir();
-
-    public File getDomainsDir();
+    
+    public List<Application> getApplications();
+    
+    public List<Domain> getDomains();
+    
+    public List<Library> getLibraries();
 
     public Status getStatus();
 
@@ -64,9 +64,6 @@ public interface MuleRuntime extends ChangeSource {
      */
     public boolean isRegistered();
     
-    /**
-     * Registers
-     */
     public void register();
 
     public void unregister();

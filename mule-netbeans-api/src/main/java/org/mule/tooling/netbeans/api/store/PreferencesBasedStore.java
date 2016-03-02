@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.api;
+package org.mule.tooling.netbeans.api.store;
 
 import java.io.File;
 import java.util.Arrays;
@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import javax.swing.event.ChangeListener;
+import org.mule.tooling.netbeans.api.MuleRuntime;
+import org.mule.tooling.netbeans.api.MuleRuntimeStore;
+import org.mule.tooling.netbeans.api.MuleSupport;
 import org.openide.util.ChangeSupport;
 import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;

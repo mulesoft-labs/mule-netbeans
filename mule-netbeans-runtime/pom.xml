@@ -99,6 +99,11 @@
             <version>${netbeans-version}</version>
         </dependency>
         <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-util-lookup</artifactId>
+            <version>${netbeans-version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.jdesktop</groupId>
             <artifactId>beansbinding</artifactId>
             <version>1.2.1</version>

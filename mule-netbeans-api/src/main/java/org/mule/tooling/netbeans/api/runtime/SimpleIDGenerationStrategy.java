@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Facundo Lopez Kaufmann.
+ * Copyright 2016 Facundo Lopez Kaufmann.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.api;
+package org.mule.tooling.netbeans.api.runtime;
+
+import java.util.UUID;
+import org.openide.util.lookup.ServiceProvider;
+import org.mule.tooling.netbeans.api.IDGenerationStrategy;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface MuleRuntimeRegistry {
+@ServiceProvider(service = IDGenerationStrategy.class)
+public class SimpleIDGenerationStrategy implements IDGenerationStrategy {
 
-    public boolean isRegistered(MuleRuntime runtime);
-
-    public void register(MuleRuntime runtime);
-
-    public void unregister(MuleRuntime runtime);
+    @Override
+    public String newId() {
+        return UUID.randomUUID().toString();
+    }
 }

@@ -16,7 +16,6 @@
 package org.mule.tooling.netbeans.api.runtime;
 
 import java.io.File;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.mule.tooling.netbeans.api.MuleRuntimeFactory;
@@ -44,11 +43,6 @@ public class DefaultMuleRuntimeFactory implements MuleRuntimeFactory, MuleRuntim
 
     private MuleRuntime doCreate(File muleHome) {
         return new DefaultMuleRuntime(this, muleHome);
-    }
-
-    @Override
-    public String newId() {
-        return UUID.randomUUID().toString();
     }
 
     @Override

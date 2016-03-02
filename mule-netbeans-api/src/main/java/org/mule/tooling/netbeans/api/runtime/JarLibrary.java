@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Facundo Lopez Kaufmann.
+ * Copyright 2016 Facundo Lopez Kaufmann.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.api;
+package org.mule.tooling.netbeans.api.runtime;
+
+import java.io.File;
+import org.mule.tooling.netbeans.api.Library;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface MuleRuntimeRegistry {
+public class JarLibrary implements Library {
+    private final File path;
 
-    public boolean isRegistered(MuleRuntime runtime);
-
-    public void register(MuleRuntime runtime);
-
-    public void unregister(MuleRuntime runtime);
+    public JarLibrary(File path) {
+        this.path = path;
+    }
+    
+    @Override
+    public String getName() {
+        return path.getName();
+    }
 }
