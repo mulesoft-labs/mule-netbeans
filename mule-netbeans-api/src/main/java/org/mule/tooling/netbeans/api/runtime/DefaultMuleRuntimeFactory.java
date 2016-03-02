@@ -38,7 +38,7 @@ public class DefaultMuleRuntimeFactory implements MuleRuntimeFactory, MuleRuntim
 
     @Override
     public MuleRuntime create(File muleHome) {
-        return registry.getOrDefault(this, doCreate(muleHome));
+        return registry.getOrDefault(muleHome, doCreate(muleHome));
     }
 
     private MuleRuntime doCreate(File muleHome) {
@@ -60,7 +60,7 @@ public class DefaultMuleRuntimeFactory implements MuleRuntimeFactory, MuleRuntim
 
     @Override
     public void unregister(MuleRuntime runtime) {
-        if (registry.remove(runtime.getMuleHome()) == null) {
+        if (registry.remove(runtime.getMuleHome()) != null) {
             MuleSupport.getStore().remove(runtime);
         }
     }
