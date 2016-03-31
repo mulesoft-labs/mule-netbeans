@@ -47,7 +47,7 @@ public class DefaultMuleRuntimeFactory implements MuleRuntimeFactory, MuleRuntim
 
     @Override
     public boolean isRegistered(MuleRuntime runtime) {
-        return registry.contains(runtime.getMuleHome());
+        return registry.containsKey(runtime.getMuleHome());
     }
 
     @Override

@@ -17,6 +17,7 @@ package org.mule.tooling.netbeans.api;
 
 import java.io.File;
 import java.util.List;
+import org.mule.tooling.netbeans.api.change.ChangeSource;
 
 /**
  *
@@ -53,6 +54,8 @@ public interface MuleRuntime extends ChangeSource {
     public boolean canStop();
 
     public void stop(boolean forced);
+    
+    public void viewLogs();
     
     /**
      * Returns if the mule runtime is registered in the

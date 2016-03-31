@@ -13,73 +13,92 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.runtime;
+package org.mule.tooling.netbeans.runtime.node;
 
 import java.awt.Image;
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Pattern;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.mule.tooling.netbeans.api.Application;
+import org.mule.tooling.netbeans.api.Library;
 import org.mule.tooling.netbeans.api.MuleRuntime;
+import org.openide.actions.DeleteAction;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
-import org.openide.util.NbBundle.Messages;
+import org.openide.util.NbBundle;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-@Messages({
-    "ApplicationsNode_displayName=Applications",
-    "ApplicationsNode_shortDescription=List of the deployed applications"
+@NbBundle.Messages({
+    "UserLibrariesNode_displayName=User Libraries",
+    "UserLibrariesNode_shortDescription=List of the deployed applications"
 })
-public class ApplicationsNode extends AbstractNode {
+public class UserLibrariesNode extends AbstractNode {
 
-    public ApplicationsNode(MuleRuntime runtime) {
-        super(Children.create(new ApplicationsChildFactory(runtime), true));
-        setDisplayName(Bundle.ApplicationsNode_displayName());
-        setShortDescription(Bundle.ApplicationsNode_shortDescription());
+    private MuleRuntime runtime;
+
+    public UserLibrariesNode(MuleRuntime runtime) {
+        super(Children.create(new LibrariesChildFactory(runtime), true));
+        setDisplayName(Bundle.UserLibrariesNode_displayName());
+        setShortDescription(Bundle.UserLibrariesNode_shortDescription());
+        this.runtime = runtime;
     }
 
     @Override
     public Image getIcon(int param) {
-        return IconUtil.getTreeFolderIcon(false);
+        return IconUtil.getTreeFolderIconWithBadge(false, IconUtil.getLibraryBadge());
     }
 
     @Override
     public Image getOpenedIcon(int param) {
-        return IconUtil.getTreeFolderIcon(true);
+        return IconUtil.getTreeFolderIconWithBadge(true, IconUtil.getLibraryBadge());
     }
 
     //--- Actions ---
     @Override
     public Action[] getActions(boolean context) {
         return new Action[]{
+            new AddLibraryAction()
         };
     }
 
+    public static class AddLibraryAction extends AbstractAction {
+
+        public AddLibraryAction() {
+            putValue(Action.NAME, "Add");
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+        }
+    }
+
     //--- ChildFactory ---
-    private static class ApplicationsChildFactory extends ChildFactory.Detachable<Application> implements ChangeListener {
+    private static class LibrariesChildFactory extends ChildFactory.Detachable<Library> implements ChangeListener {
 
         private MuleRuntime runtime;
 
-        private ApplicationsChildFactory(MuleRuntime muleRuntime) {
+        private LibrariesChildFactory(MuleRuntime muleRuntime) {
             this.runtime = muleRuntime;
         }
 
         @Override
-        protected boolean createKeys(List<Application> toPopulate) {
-            toPopulate.addAll(runtime.getApplications());
+        protected boolean createKeys(List<Library> toPopulate) {
+            toPopulate.addAll(runtime.getLibraries());
             return true;
         }
 
         @Override
-        protected Node createNodeForKey(Application key) {
-            return new ApplicationNode(key);
+        protected Node createNodeForKey(Library key) {
+            return new LibraryNode(key);
         }
 
         @Override
@@ -98,21 +117,22 @@ public class ApplicationsNode extends AbstractNode {
         }
     }
 
-    public static class ApplicationNode extends AbstractNode {
+    public static class LibraryNode extends AbstractNode {
 
-        public ApplicationNode(Application app) {
+        public LibraryNode(Library jar) {
             super(Children.LEAF);
-            setDisplayName(app.getName());
+            setDisplayName(jar.getName());
         }
 
         @Override
         public Image getIcon(int type) {
-            return IconUtil.getMuleIcon();
+            return IconUtil.getJarIcon();
         }
 
         @Override
         public Action[] getActions(boolean context) {
-            return new Action[]{};
+            return new Action[]{
+                DeleteAction.get(DeleteAction.class),};
         }
 
         @Override

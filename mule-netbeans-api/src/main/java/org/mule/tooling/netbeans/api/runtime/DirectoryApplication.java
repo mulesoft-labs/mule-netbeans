@@ -16,15 +16,20 @@
 package org.mule.tooling.netbeans.api.runtime;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import org.mule.tooling.netbeans.api.Application;
 import org.mule.tooling.netbeans.api.Library;
-import org.openide.util.Exceptions;
+import org.mule.tooling.netbeans.api.Status;
 
 /**
  *
@@ -32,9 +37,17 @@ import org.openide.util.Exceptions;
  */
 public class DirectoryApplication implements Application {
     
+    private static final Logger LOGGER = Logger.getLogger(DirectoryApplication.class.getName());
+    private static final Pattern JAR_PATTERN = Pattern.compile("(.*?)\\.jar"); // NOI18N
     private final File path;
     private final Properties muleDeployProperties;
+    private Status status = Status.DOWN;
+    private List<Library> libs = new ArrayList<Library>();
 
+    public DirectoryApplication(String path) {
+        this(new File(path));
+    }
+    
     public DirectoryApplication(File path) {
         this.path = path;
         muleDeployProperties = new Properties();
@@ -52,6 +65,18 @@ public class DirectoryApplication implements Application {
                 }
             }
         }
+        File[] children = new File(path, "lib").listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                return JAR_PATTERN.matcher(pathname.getName()).matches();
+            }
+        });
+        if(children == null) {
+            return;
+        }
+        for (File file : children) {
+            libs.add(new JarLibrary(file));
+        }
     }
 
     @Override
@@ -60,12 +85,22 @@ public class DirectoryApplication implements Application {
     }
 
     @Override
+    public Status getStatus() {
+        return status;
+    }
+
+    @Override
     public String getDomainName() {
-        return muleDeployProperties.getProperty("domain");
+        return muleDeployProperties.getProperty("domain", "");
+    }
+
+    @Override
+    public List<String> getConfigs() {
+        return Arrays.asList(muleDeployProperties.getProperty("config.resources", "").split(","));
     }
 
     @Override
     public List<Library> getLibraries() {
-        return Collections.emptyList();
+        return libs;
     }
 }

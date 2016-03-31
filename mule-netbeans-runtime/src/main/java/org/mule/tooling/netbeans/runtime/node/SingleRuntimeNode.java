@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.runtime;
+package org.mule.tooling.netbeans.runtime.node;
 
 import java.awt.Image;
-import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.List;
 import javax.swing.Action;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.mule.tooling.netbeans.api.MuleRuntime;
-import org.netbeans.api.annotations.common.StaticResource;
+import org.mule.tooling.netbeans.api.change.AttributeChangeEvent;
 import org.openide.actions.DeleteAction;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
-import org.openide.nodes.NodeEvent;
-import org.openide.nodes.NodeListener;
-import org.openide.nodes.NodeMemberEvent;
-import org.openide.nodes.NodeReorderEvent;
 import org.openide.util.Exceptions;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.RequestProcessor;
@@ -47,30 +44,40 @@ import org.openide.util.actions.SystemAction;
         "SingleRuntimeNode_shortDescription_muleHome=Mule Home:<b> {0} </b><p>",
         "SingleRuntimeNode_shortDescription_status=Status:<b> {0} </b><p>",
     })
-public class SingleRuntimeNode extends AbstractNode {
+public class SingleRuntimeNode extends AbstractNode implements ChangeListener {
 
     protected static final RequestProcessor RP = new RequestProcessor("Mule server control", 10);
-
+    
     public SingleRuntimeNode(MuleRuntime muleRuntime) {
         super(Children.create(new RuntimeNodeChildFactory(muleRuntime), true));
         setName(muleRuntime.getId());
         setDisplayName(muleRuntime.getName());
         getCookieSet().add(new RuntimeCookie(muleRuntime));
+        muleRuntime.addChangeListener(this);
     }
 
     @Override
     public Image getIcon(int type) {
-        return IconUtil.getMuleServerIcon(getMuleRuntime().isRunning());
+        return IconUtil.getMuleServerIcon(getMuleRuntime().getStatus());
     }
 
     @Override
     public Image getOpenedIcon(int type) {
         return getIcon(type);
     }
+    
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        if(e instanceof AttributeChangeEvent && ((AttributeChangeEvent)e).getAttributeName().equals("status")) {
+            fireIconChange();
+        }
+    }
 
     @Override
     public void destroy() throws IOException {
         super.destroy();
+        getMuleRuntime().removeChangeListener(this);
         getMuleRuntime().unregister();
     }
     
@@ -103,6 +110,7 @@ public class SingleRuntimeNode extends AbstractNode {
         return new Action[]{
             SystemAction.get(StartRuntimeAction.class),
             SystemAction.get(StopRuntimeAction.class),
+            SystemAction.get(ViewRuntimeLogsAction.class),
             null,
             SystemAction.get(TerminateRuntimeAction.class),
             null,
@@ -112,9 +120,8 @@ public class SingleRuntimeNode extends AbstractNode {
     
     //--- ChildFactory ---
     
-    private static class RuntimeNodeChildFactory extends ChildFactory.Detachable<Class<? extends AbstractNode>> {
+    private static class RuntimeNodeChildFactory extends ChildFactory.Detachable<Class<? extends AbstractNode>> implements ChangeListener {
         private MuleRuntime runtime;
-
         private RuntimeNodeChildFactory(MuleRuntime muleRuntime) {
             this.runtime = muleRuntime;
         }
@@ -140,10 +147,19 @@ public class SingleRuntimeNode extends AbstractNode {
 
         @Override
         protected void addNotify() {
+            runtime.addChangeListener(this);
         }
 
         @Override
         protected void removeNotify() {
+            runtime.removeChangeListener(this);
+        }
+
+        @Override
+        public void stateChanged(ChangeEvent e) {
+            if(e instanceof AttributeChangeEvent && ((AttributeChangeEvent)e).getAttributeName().equals("status")) {
+                refresh(true);
+            }
         }
     }
 }

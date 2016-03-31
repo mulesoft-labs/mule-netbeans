@@ -13,93 +13,73 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.runtime;
+package org.mule.tooling.netbeans.runtime.node;
 
 import java.awt.Image;
-import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.List;
-import java.util.regex.Pattern;
-import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.mule.tooling.netbeans.api.Library;
+import org.mule.tooling.netbeans.api.Domain;
 import org.mule.tooling.netbeans.api.MuleRuntime;
-import org.openide.actions.DeleteAction;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
-import org.openide.util.NbBundle;
+import org.openide.util.NbBundle.Messages;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-@NbBundle.Messages({
-    "UserLibrariesNode_displayName=User Libraries",
-    "UserLibrariesNode_shortDescription=List of the deployed applications"
+@Messages({
+    "DomainsNode_displayName=Domains",
+    "DomainsNode_shortDescription=List of the deployed domains"
 })
-public class UserLibrariesNode extends AbstractNode {
+public class DomainsNode extends AbstractNode {
 
-    private static final Pattern JAR_PATTERN = Pattern.compile("(.*?)\\.jar"); // NOI18N
-    private MuleRuntime runtime;
-
-    public UserLibrariesNode(MuleRuntime runtime) {
-        super(Children.create(new LibrariesChildFactory(runtime), true));
-        setDisplayName(Bundle.UserLibrariesNode_displayName());
-        setShortDescription(Bundle.UserLibrariesNode_shortDescription());
-        this.runtime = runtime;
+    public DomainsNode(MuleRuntime runtime) {
+        super(Children.create(new DomainsChildFactory(runtime), true));
+        setDisplayName(Bundle.DomainsNode_displayName());
+        setShortDescription(Bundle.DomainsNode_shortDescription());
     }
 
     @Override
     public Image getIcon(int param) {
-        return IconUtil.getTreeFolderIconWithBadge(false, IconUtil.getLibraryBadge());
+        return IconUtil.getTreeFolderIcon(false);
     }
 
     @Override
     public Image getOpenedIcon(int param) {
-        return IconUtil.getTreeFolderIconWithBadge(true, IconUtil.getLibraryBadge());
+        return IconUtil.getTreeFolderIcon(true);
     }
 
     //--- Actions ---
     @Override
     public Action[] getActions(boolean context) {
         return new Action[]{
-            new AddLibraryAction()
         };
     }
 
-    public static class AddLibraryAction extends AbstractAction {
-
-        public AddLibraryAction() {
-            putValue(Action.NAME, "Add");
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-        }
-    }
-
     //--- ChildFactory ---
-    private static class LibrariesChildFactory extends ChildFactory.Detachable<Library> implements ChangeListener {
+    private static class DomainsChildFactory extends ChildFactory.Detachable<Domain> implements ChangeListener {
 
         private MuleRuntime runtime;
 
-        private LibrariesChildFactory(MuleRuntime muleRuntime) {
+        private DomainsChildFactory(MuleRuntime muleRuntime) {
             this.runtime = muleRuntime;
         }
 
         @Override
-        protected boolean createKeys(List<Library> toPopulate) {
-            toPopulate.addAll(runtime.getLibraries());
+        protected boolean createKeys(List<Domain> toPopulate) {
+            toPopulate.addAll(runtime.getDomains());
             return true;
         }
 
         @Override
-        protected Node createNodeForKey(Library key) {
-            return new LibraryNode(key);
+        protected Node createNodeForKey(Domain key) {
+            return new DomainNode(key);
         }
 
         @Override
@@ -118,22 +98,21 @@ public class UserLibrariesNode extends AbstractNode {
         }
     }
 
-    public static class LibraryNode extends AbstractNode {
+    public static class DomainNode extends AbstractNode {
 
-        public LibraryNode(Library jar) {
+        public DomainNode(Domain domainName) {
             super(Children.LEAF);
-            setDisplayName(jar.getName());
+            setDisplayName(domainName.getName());
         }
 
         @Override
         public Image getIcon(int type) {
-            return IconUtil.getJarIcon();
+            return IconUtil.getMuleIcon();
         }
 
         @Override
         public Action[] getActions(boolean context) {
-            return new Action[]{
-                DeleteAction.get(DeleteAction.class),};
+            return new Action[]{};
         }
 
         @Override

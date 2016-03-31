@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.runtime;
+package org.mule.tooling.netbeans.runtime.node;
 
 import java.awt.Image;
 import javax.swing.Icon;
 import javax.swing.UIManager;
+import org.mule.tooling.netbeans.api.Status;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.ImageUtilities;
 
@@ -55,6 +56,8 @@ public class IconUtil {
     private static final String SERVER_BADGE_ICON = "org/mule/tooling/netbeans/runtime/resources/server-badge.png";  //NOI18N
     @StaticResource
     private static final String RUNNING_BADGE_ICON = "org/mule/tooling/netbeans/runtime/resources/running-badge.png";  //NOI18N
+    @StaticResource
+    private static final String WAITING_BADGE_ICON = "org/mule/tooling/netbeans/runtime/resources/waiting-badge.png";  //NOI18N
 
     /**
      * Returns default folder icon as {@link java.awt.Image}. Never returns
@@ -101,13 +104,17 @@ public class IconUtil {
         return ImageUtilities.loadImage(CONFIG_ICON, true);
     }
 
-    public static Image getMuleServerIcon(boolean isRunning) {
+    public static Image getMuleServerIcon(Status status) {
         Image icon = ImageUtilities.mergeImages(ImageUtilities.loadImage(SERVER_ICON),
                 ImageUtilities.loadImage(MULE_BADGE_ICON), //NOI18N
                 8, 0);
-        if (isRunning) {
+        if (status.equals(Status.RUNNING)) {
             icon = ImageUtilities.mergeImages(icon,
                     ImageUtilities.loadImage(RUNNING_BADGE_ICON), //NOI18N
+                    9, 9);
+        } else if (status.equals(Status.STARTING)) {
+            icon = ImageUtilities.mergeImages(icon,
+                    ImageUtilities.loadImage(WAITING_BADGE_ICON), //NOI18N
                     9, 9);
         }
         return icon;

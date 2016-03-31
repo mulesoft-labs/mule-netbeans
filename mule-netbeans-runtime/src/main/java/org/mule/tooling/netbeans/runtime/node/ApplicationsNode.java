@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.runtime;
+package org.mule.tooling.netbeans.runtime.node;
 
 import java.awt.Image;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Action;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.mule.tooling.netbeans.api.Domain;
+import org.mule.tooling.netbeans.api.Application;
+import org.mule.tooling.netbeans.api.Library;
 import org.mule.tooling.netbeans.api.MuleRuntime;
-import org.openide.filesystems.FileAttributeEvent;
-import org.openide.filesystems.FileEvent;
-import org.openide.filesystems.FileRenameEvent;
-import org.openide.filesystems.FileUtil;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Children;
@@ -38,15 +36,15 @@ import org.openide.util.NbBundle.Messages;
  * @author Facundo Lopez Kaufmann
  */
 @Messages({
-    "DomainsNode_displayName=Domains",
-    "DomainsNode_shortDescription=List of the deployed domains"
+    "ApplicationsNode_displayName=Applications",
+    "ApplicationsNode_shortDescription=List of the deployed applications"
 })
-public class DomainsNode extends AbstractNode {
+public class ApplicationsNode extends AbstractNode {
 
-    public DomainsNode(MuleRuntime runtime) {
-        super(Children.create(new DomainsChildFactory(runtime), true));
-        setDisplayName(Bundle.DomainsNode_displayName());
-        setShortDescription(Bundle.DomainsNode_shortDescription());
+    public ApplicationsNode(MuleRuntime runtime) {
+        super(Children.create(new ApplicationsChildFactory(runtime), true));
+        setDisplayName(Bundle.ApplicationsNode_displayName());
+        setShortDescription(Bundle.ApplicationsNode_shortDescription());
     }
 
     @Override
@@ -67,23 +65,23 @@ public class DomainsNode extends AbstractNode {
     }
 
     //--- ChildFactory ---
-    private static class DomainsChildFactory extends ChildFactory.Detachable<Domain> implements ChangeListener {
+    private static class ApplicationsChildFactory extends ChildFactory.Detachable<Application> implements ChangeListener {
 
         private MuleRuntime runtime;
 
-        private DomainsChildFactory(MuleRuntime muleRuntime) {
+        private ApplicationsChildFactory(MuleRuntime muleRuntime) {
             this.runtime = muleRuntime;
         }
 
         @Override
-        protected boolean createKeys(List<Domain> toPopulate) {
-            toPopulate.addAll(runtime.getDomains());
+        protected boolean createKeys(List<Application> toPopulate) {
+            toPopulate.addAll(runtime.getApplications());
             return true;
         }
 
         @Override
-        protected Node createNodeForKey(Domain key) {
-            return new DomainNode(key);
+        protected Node createNodeForKey(Application key) {
+            return new ApplicationNode(key);
         }
 
         @Override
@@ -101,12 +99,21 @@ public class DomainsNode extends AbstractNode {
             refresh(false);
         }
     }
-
-    public static class DomainNode extends AbstractNode {
-
-        public DomainNode(Domain domainName) {
+    
+    @Messages({
+        "ApplicationsNode_ApplicationNode_name=Name:<b> {0} </b><p>",
+        "ApplicationsNode_ApplicationNode_domain=Domain:<b> {0} </b><p>",
+        "ApplicationsNode_ApplicationNode_libs=Libs:<p>",
+        "ApplicationsNode_ApplicationNode_libitem=<b> - {0} </b><p>",
+    })
+    public static class ApplicationNode extends AbstractNode {
+        
+        private Application app;
+        
+        public ApplicationNode(Application app) {
             super(Children.LEAF);
-            setDisplayName(domainName.getName());
+            this.app = app;
+            setDisplayName(app.getName());
         }
 
         @Override
@@ -117,6 +124,20 @@ public class DomainsNode extends AbstractNode {
         @Override
         public Action[] getActions(boolean context) {
             return new Action[]{};
+        }
+    
+        @Override 
+        public String getShortDescription() {
+            StringBuilder buffer = new StringBuilder();
+            buffer.append("<html>");//NOI18N
+            buffer.append(Bundle.ApplicationsNode_ApplicationNode_name(app.getName()));
+            buffer.append(Bundle.ApplicationsNode_ApplicationNode_domain(app.getDomainName()));
+            buffer.append(Bundle.ApplicationsNode_ApplicationNode_libs());
+            for (Library lib : app.getLibraries()) {
+                buffer.append(Bundle.ApplicationsNode_ApplicationNode_libitem(lib.getName()));
+            }
+            buffer.append("</html>");//NOI18N
+            return buffer.toString();
         }
 
         @Override

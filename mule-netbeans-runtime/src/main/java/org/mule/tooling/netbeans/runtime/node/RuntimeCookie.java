@@ -13,14 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.api;
+package org.mule.tooling.netbeans.runtime.node;
 
-import org.mule.tooling.netbeans.api.change.ChangeSource;
+import org.mule.tooling.netbeans.api.MuleRuntime;
+import org.openide.nodes.Node;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface MuleRuntimeStore extends Store<MuleRuntime>, ChangeSource {
-    
+public class RuntimeCookie implements Node.Cookie {
+
+    private final MuleRuntime runtime;
+
+    public RuntimeCookie(MuleRuntime runtime) {
+        this.runtime = runtime;
+    }
+
+    public MuleRuntime getRuntime() {
+        return runtime;
+    }
 }

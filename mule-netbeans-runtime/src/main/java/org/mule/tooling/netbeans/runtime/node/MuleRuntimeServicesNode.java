@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.runtime;
+package org.mule.tooling.netbeans.runtime.node;
 
 import org.mule.tooling.netbeans.runtime.ui.MuleHomeView;
 import java.awt.event.ActionEvent;
@@ -113,8 +113,8 @@ public class MuleRuntimeServicesNode extends AbstractNode {
         }
 
         @Override
-        public void stateChanged(ChangeEvent e) {
-            refresh(false);
+        public void stateChanged(ChangeEvent event) {
+            refresh(true);
         }
     }
 }

@@ -20,6 +20,7 @@ package org.mule.tooling.netbeans.api;
  * @author Facundo Lopez Kaufmann
  */
 public enum Status {
+    FAILED,
     STARTING,
     RUNNING,
     SHUTTING_DOWN,

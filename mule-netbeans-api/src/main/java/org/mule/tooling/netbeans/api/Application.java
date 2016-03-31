@@ -21,11 +21,13 @@ import java.util.List;
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface Application {
-
-    public String getName();
+public interface Application extends Named {
 
     public String getDomainName();
+
+    public Status getStatus();
+
+    public List<String> getConfigs();
 
     public List<Library> getLibraries();
 }

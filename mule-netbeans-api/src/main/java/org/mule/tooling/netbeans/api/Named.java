@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Facundo Lopez Kaufmann.
+ * Copyright 2016 Facundo Lopez Kaufmann.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,11 @@
  */
 package org.mule.tooling.netbeans.api;
 
-import javax.swing.event.ChangeListener;
-
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface ChangeSource {
+public interface Named {
 
-    public void addChangeListener(ChangeListener listener);
-
-    public void removeChangeListener(ChangeListener listener);
-
+    public String getName();
 }

@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.runtime;
+package org.mule.tooling.netbeans.api.change;
 
-import org.mule.tooling.netbeans.api.MuleRuntime;
-import org.openide.nodes.Node;
+import javax.swing.event.ChangeListener;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public class RuntimeCookie implements Node.Cookie {
+public interface ChangeSource {
 
-    private final MuleRuntime runtime;
+    public void addChangeListener(ChangeListener listener);
 
-    public RuntimeCookie(MuleRuntime runtime) {
-        this.runtime = runtime;
-    }
+    public void removeChangeListener(ChangeListener listener);
 
-    public MuleRuntime getRuntime() {
-        return runtime;
-    }
 }

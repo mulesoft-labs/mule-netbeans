@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.runtime;
+package org.mule.tooling.netbeans.runtime.node;
 
 import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.openide.nodes.Node;
@@ -26,39 +26,28 @@ import org.openide.util.actions.NodeAction;
  * @author Facundo Lopez Kaufmann
  */
 @Messages({
-    "StartRuntimeAction_name=Start"
+    "ViewRuntimeLogsAction_name=View Logs"
 })
-public class StartRuntimeAction extends NodeAction {
+public class ViewRuntimeLogsAction extends NodeAction {
 
-    public StartRuntimeAction() {
+    public ViewRuntimeLogsAction() {
     }
 
     @Override
     protected void performAction(Node[] activatedNodes) {
         for (Node node : activatedNodes) {
-            MuleRuntime runtime = node.getCookie(RuntimeCookie.class).getRuntime();
-            runtime.start();
+            node.getCookie(RuntimeCookie.class).getRuntime().viewLogs();
         }
     }
 
     @Override
     protected boolean enable(Node[] activatedNodes) {
-        for (Node node : activatedNodes) {
-            RuntimeCookie cookie = node.getCookie(RuntimeCookie.class);
-            if(cookie == null) {
-                return false;
-            }
-            MuleRuntime runtime = cookie.getRuntime();
-            if (runtime.isRunning() || !runtime.canStart()) {
-                return false;
-            }
-        }
         return true;
     }
 
     @Override
     public String getName() {
-        return Bundle.StartRuntimeAction_name();
+        return Bundle.ViewRuntimeLogsAction_name();
     }
 
     @Override

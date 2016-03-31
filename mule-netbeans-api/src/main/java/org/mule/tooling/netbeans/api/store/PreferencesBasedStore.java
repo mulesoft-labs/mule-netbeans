@@ -20,11 +20,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
-import javax.swing.event.ChangeListener;
 import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.mule.tooling.netbeans.api.MuleRuntimeStore;
 import org.mule.tooling.netbeans.api.MuleSupport;
-import org.openide.util.ChangeSupport;
+import org.mule.tooling.netbeans.api.change.AbstractChangeSource;
 import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
@@ -34,12 +33,11 @@ import org.openide.util.lookup.ServiceProvider;
  * @author Facundo Lopez Kaufmann
  */
 @ServiceProvider(service = MuleRuntimeStore.class)
-public class PreferencesBasedStore implements MuleRuntimeStore {
+public class PreferencesBasedStore extends AbstractChangeSource implements MuleRuntimeStore {
 
     private static final String RUNTIMES_NODE = "nodes";
     private static final String NODES_RUNTIME_MH = "muleHome";
     private static final String NODES_RUNTIME_NAME = "name";
-    private final ChangeSupport cs = new ChangeSupport(this);
     private final Preferences PREFERENCES = NbPreferences.forModule(MuleSupport.class).node(RUNTIMES_NODE);
 
     
@@ -81,7 +79,7 @@ public class PreferencesBasedStore implements MuleRuntimeStore {
         runtimeNode.put(NODES_RUNTIME_MH, runtime.getMuleHome().getAbsolutePath());
         try {
             PREFERENCES.flush();
-            cs.fireChange();
+            fireChange();
         } catch (BackingStoreException ex) {
             Exceptions.printStackTrace(ex);
         }
@@ -93,20 +91,10 @@ public class PreferencesBasedStore implements MuleRuntimeStore {
             if(PREFERENCES.nodeExists(runtime.getId())) {
                 PREFERENCES.node(runtime.getId()).removeNode();
                 PREFERENCES.flush();
-                cs.fireChange();
+                fireChange();
             }
         } catch (BackingStoreException ex) {
             Exceptions.printStackTrace(ex);
         }
-    }
-
-    @Override
-    public void addChangeListener(ChangeListener listener) {
-        cs.addChangeListener(listener);
-    }
-
-    @Override
-    public void removeChangeListener(ChangeListener listener) {
-        cs.removeChangeListener(listener);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Facundo Lopez Kaufmann.
+ * Copyright 2016 Facundo Lopez Kaufmann.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.api;
-
-import org.mule.tooling.netbeans.api.change.ChangeSource;
+package org.mule.tooling.netbeans.api.runtime;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface MuleRuntimeStore extends Store<MuleRuntime>, ChangeSource {
-    
+public interface InternalController {
+    public static final String PROCESS = "process";
+    public static final String USERLIBS = "userlibs";
+    public static final String DOMAINS = "domains";
+    public static final String APPLICATIONS = "applications";
+
+    public void initialize();
+
+    public void shutdown();
 }

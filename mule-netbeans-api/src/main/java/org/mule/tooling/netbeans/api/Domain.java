@@ -19,7 +19,5 @@ package org.mule.tooling.netbeans.api;
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface Domain {
-
-    public String getName();
+public interface Domain extends Named {
 }

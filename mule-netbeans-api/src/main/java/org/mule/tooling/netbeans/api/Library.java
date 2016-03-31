@@ -19,7 +19,5 @@ package org.mule.tooling.netbeans.api;
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface Library {
-
-    public String getName();
+public interface Library extends Named {
 }

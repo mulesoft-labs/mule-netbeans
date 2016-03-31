@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.runtime;
+package org.mule.tooling.netbeans.runtime.node;
 
 import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.openide.nodes.Node;
@@ -26,18 +26,18 @@ import org.openide.util.actions.NodeAction;
  * @author Facundo Lopez Kaufmann
  */
 @Messages({
-    "StopRuntimeAction_name=Stop"
+    "StartRuntimeAction_name=Start"
 })
-public class StopRuntimeAction extends NodeAction {
+public class StartRuntimeAction extends NodeAction {
 
-    public StopRuntimeAction() {
+    public StartRuntimeAction() {
     }
 
     @Override
     protected void performAction(Node[] activatedNodes) {
         for (Node node : activatedNodes) {
             MuleRuntime runtime = node.getCookie(RuntimeCookie.class).getRuntime();
-            runtime.stop(false);
+            runtime.start();
         }
     }
 
@@ -49,7 +49,7 @@ public class StopRuntimeAction extends NodeAction {
                 return false;
             }
             MuleRuntime runtime = cookie.getRuntime();
-            if (!runtime.isRunning() || !runtime.canStop()) {
+            if (!runtime.canStart()) {
                 return false;
             }
         }
@@ -58,7 +58,7 @@ public class StopRuntimeAction extends NodeAction {
 
     @Override
     public String getName() {
-        return Bundle.StopRuntimeAction_name();
+        return Bundle.StartRuntimeAction_name();
     }
 
     @Override
