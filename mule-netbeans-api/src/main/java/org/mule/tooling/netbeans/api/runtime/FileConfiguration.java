@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Facundo Lopez Kaufmann.
+ * Copyright 2016 Facundo Lopez Kaufmann.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.api;
+package org.mule.tooling.netbeans.api.runtime;
 
-import java.nio.file.Path;
+import java.io.File;
+import org.mule.tooling.netbeans.api.Configuration;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface MuleRuntimeFactory {
+public class FileConfiguration implements Configuration {
+    
+    private final String name;
+    private final File file;
 
-    public MuleRuntime create(Path muleHome);
+    public FileConfiguration(String name, File file) {
+        this.name = name;
+        this.file = file;
+    }
+
+    @Override
+    public File getFile() {
+        return file;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
 }

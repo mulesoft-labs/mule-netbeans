@@ -15,7 +15,7 @@
  */
 package org.mule.tooling.netbeans.api;
 
-import java.io.File;
+import java.nio.file.Path;
 import org.openide.util.Lookup;
 
 /**
@@ -33,7 +33,7 @@ public class MuleSupport {
         REGISTRY = Lookup.getDefault().lookup(MuleRuntimeRegistry.class);
     }
     
-    public static MuleRuntime getMuleRuntime(File muleHome) {
+    public static MuleRuntime getMuleRuntime(Path muleHome) {
         return FACTORY.create(muleHome);
     }
     

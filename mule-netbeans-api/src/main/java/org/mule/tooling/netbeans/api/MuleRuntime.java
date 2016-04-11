@@ -16,6 +16,7 @@
 package org.mule.tooling.netbeans.api;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import org.mule.tooling.netbeans.api.change.ChangeSource;
 
@@ -35,13 +36,15 @@ public interface MuleRuntime extends ChangeSource {
 
     public RuntimeVersion getVersion();
 
-    public File getMuleHome();
+    public Path getMuleHome();
     
     public List<Application> getApplications();
     
     public List<Domain> getDomains();
     
     public List<Library> getLibraries();
+    
+    public List<Configuration> getConfigurations();
 
     public Status getStatus();
 
@@ -49,7 +52,7 @@ public interface MuleRuntime extends ChangeSource {
 
     public boolean canStart();
 
-    public void start();
+    public void start(boolean debug);
 
     public boolean canStop();
 

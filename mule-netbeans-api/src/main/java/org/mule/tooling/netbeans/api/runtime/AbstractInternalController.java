@@ -40,7 +40,7 @@ public abstract class AbstractInternalController<T extends Named> extends FileCh
         this.targetDir = deploymentDir;
         this.cs = cs;
     }
-    
+
     public List<T> getArtefacts() {
         return new ArrayList<T>(artefacts.values());
     }
@@ -58,11 +58,14 @@ public abstract class AbstractInternalController<T extends Named> extends FileCh
                 return doAccept(pathname);
             }
         });
+        if (children == null) {
+            return;
+        }
         for (File file : children) {
             add(file, false);
         }
     }
-    
+
     protected abstract boolean doAccept(File pathname);
 
     protected void add(File file, boolean notify) {
@@ -72,14 +75,14 @@ public abstract class AbstractInternalController<T extends Named> extends FileCh
             cs.fireChange(getAttributeName(), artefact);
         }
     }
-    
+
     protected abstract T doCreate(File file);
 
     protected void remove(String name) {
         T artefact = artefacts.remove(name);
         cs.fireChange(getAttributeName(), artefact);
     }
-    
+
     protected abstract String getAttributeName();
 
     @Override

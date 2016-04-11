@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Facundo Lopez Kaufmann.
+ * Copyright 2016 Facundo Lopez Kaufmann.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,17 @@
  */
 package org.mule.tooling.netbeans.api;
 
-import java.nio.file.Path;
+import java.io.File;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface MuleRuntimeFactory {
+public interface Configuration extends Named {
 
-    public MuleRuntime create(Path muleHome);
+    public static final String TLS = "tls";
+    public static final String LOGS = "logs";
+    public static final String WRAPPER = "wrapper";
+
+    public File getFile();
 }

@@ -17,7 +17,6 @@ package org.mule.tooling.netbeans.runtime.node;
 
 import java.awt.Image;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Action;
 import javax.swing.event.ChangeEvent;

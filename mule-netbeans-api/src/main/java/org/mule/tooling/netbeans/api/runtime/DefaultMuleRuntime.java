@@ -17,6 +17,9 @@ package org.mule.tooling.netbeans.api.runtime;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -24,6 +27,7 @@ import java.util.jar.Manifest;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.mule.tooling.netbeans.api.Application;
+import org.mule.tooling.netbeans.api.Configuration;
 import org.mule.tooling.netbeans.api.Domain;
 import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.mule.tooling.netbeans.api.MuleRuntimeRegistry;
@@ -46,25 +50,26 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
 
     private static final Logger LOGGER = Logger.getLogger(DefaultMuleRuntime.class.getName());
     private static final Pattern MULE_BOOT_PATTERN = Pattern.compile("mule-module-(.*?)boot(.*?)\\.jar"); // NOI18N
-    private static final String LIB_SUBDIR = File.separator + "lib";
+    private static final String LIB_SUBDIR = "lib";
     private static final String LIB_BOOT_SUBDIR = LIB_SUBDIR + File.separator + "boot";
     private static final String LIB_USER_SUBDIR = LIB_SUBDIR + File.separator + "user";
-    private static final String APPS_SUBDIR = File.separator + "apps";
-    private static final String DOMAINS_SUBDIR = File.separator + "domains";
+    private static final String APPS_SUBDIR = "apps";
+    private static final String DOMAINS_SUBDIR = "domains";
     private static final String MF_IMPLEMENTATION_VENDOR_ID = Attributes.Name.IMPLEMENTATION_VENDOR_ID.toString();
     private static final String MF_SPECIFICATION_VERSION = Attributes.Name.SPECIFICATION_VERSION.toString();
     private static final IDGenerationStrategy IDGENERATOR = Lookup.getDefault().lookup(IDGenerationStrategy.class);
     private final MuleRuntimeRegistry registry;
-    private final File muleHome;
+    private final Path muleHome;
     private ApplicationsInternalController apps;
     private DomainsInternalController domains;
     private UserLibrariesInternalController libs;
+    private List<Configuration> configurations = new ArrayList<Configuration>();
     private String id;
     private JarFile bootJar;
     private RuntimeVersion version;
     private MuleProcess process;
 
-    public DefaultMuleRuntime(MuleRuntimeRegistry registry, File muleHome) {
+    public DefaultMuleRuntime(MuleRuntimeRegistry registry, Path muleHome) {
         super();
         this.registry = registry;
         this.muleHome = muleHome;
@@ -75,14 +80,14 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
      *
      */
     private void init() {
-        if (!getMuleHome().exists()) {
+        if (!Files.exists(muleHome)) {
             throw new IllegalStateException("Invalid Mule installation");
         }
-        if (!new File(muleHome, LIB_SUBDIR).exists()) {
+        if (!Files.exists(muleHome.resolve(LIB_SUBDIR))) {
             throw new IllegalStateException("Invalid Mule installation");
         }
-        File libBoot = new File(muleHome, LIB_BOOT_SUBDIR);
-        if (!libBoot.exists()) {
+        File libBoot = muleHome.resolve(LIB_BOOT_SUBDIR).toFile();
+        if (!libBoot.exists() || !libBoot.isDirectory()) {
             throw new IllegalStateException("Invalid Mule installation");
         }
         File[] children = libBoot.listFiles(new FilenameFilter() {
@@ -105,9 +110,26 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
             throw new IllegalStateException("Invalid boot jar", e);
         }
         process = new MuleProcess(this, changeSupport);
-        apps = new ApplicationsInternalController(new File(muleHome, APPS_SUBDIR), changeSupport);
-        libs = new UserLibrariesInternalController(new File(muleHome, LIB_USER_SUBDIR), changeSupport);
-        domains = new DomainsInternalController(new File(muleHome, DOMAINS_SUBDIR), changeSupport);
+        apps = new ApplicationsInternalController(muleHome.resolve(APPS_SUBDIR).toFile(), changeSupport);
+        libs = new UserLibrariesInternalController(muleHome.resolve(LIB_USER_SUBDIR).toFile(), changeSupport);
+        domains = new DomainsInternalController(muleHome.resolve(DOMAINS_SUBDIR).toFile(), changeSupport);
+
+        addConfiguration(Configuration.TLS, muleHome.resolve("conf/tls-default.conf").toFile());
+        addConfiguration(Configuration.WRAPPER, muleHome.resolve("conf/wrapper.conf").toFile());
+        String[] parts = version.getNumber().split("\\.");
+        int major = Integer.valueOf(parts[0]);
+        int minor = Integer.valueOf(parts[1]);
+        if ((version.getBranch().equals(BRANCH_API_GW) && major == 1) || (minor < 6)) {
+            addConfiguration(Configuration.LOGS, muleHome.resolve("conf/log4j.properties").toFile());
+        } else {
+            addConfiguration(Configuration.LOGS, muleHome.resolve("conf/log4j2.xml").toFile());
+        }
+    }
+
+    protected void addConfiguration(String name, File file) {
+        if (file.exists()) {
+            configurations.add(new FileConfiguration(name, file));
+        }
     }
 
     public void update(FileEvent fe) {
@@ -163,8 +185,8 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
     }
 
     @Override
-    public void start() {
-        process.start();
+    public void start(boolean debug) {
+        process.start(debug);
     }
 
     @Override
@@ -183,7 +205,6 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
     }
 
     //---MuleRuntime implementation
-    
     @Override
     public String getId() {
         return id;
@@ -200,7 +221,7 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
     }
 
     @Override
-    public File getMuleHome() {
+    public Path getMuleHome() {
         return muleHome;
     }
 
@@ -217,6 +238,11 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
     @Override
     public List<Library> getLibraries() {
         return libs.getArtefacts();
+    }
+
+    @Override
+    public List<Configuration> getConfigurations() {
+        return configurations;
     }
 
     @Override

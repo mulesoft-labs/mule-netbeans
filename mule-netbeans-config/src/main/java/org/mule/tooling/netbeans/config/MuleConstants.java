@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Facundo Lopez Kaufmann.
+ * Copyright 2016 Facundo Lopez Kaufmann.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.api;
+package org.mule.tooling.netbeans.config;
 
-import java.nio.file.Path;
+import org.netbeans.api.annotations.common.StaticResource;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface MuleRuntimeFactory {
+public class MuleConstants {
 
-    public MuleRuntime create(Path muleHome);
+    public static final String MULE_MIME_TYPE = "text/x-mule+xml";
+    @StaticResource
+    public static final String MULE_TYPE_ICON = "org/mule/tooling/netbeans/config/mule-type.png";
 }

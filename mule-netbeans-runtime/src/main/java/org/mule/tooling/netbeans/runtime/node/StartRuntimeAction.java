@@ -29,7 +29,9 @@ import org.openide.util.actions.NodeAction;
     "StartRuntimeAction_name=Start"
 })
 public class StartRuntimeAction extends NodeAction {
-
+    
+    protected boolean debug = false;
+    
     public StartRuntimeAction() {
     }
 
@@ -37,7 +39,7 @@ public class StartRuntimeAction extends NodeAction {
     protected void performAction(Node[] activatedNodes) {
         for (Node node : activatedNodes) {
             MuleRuntime runtime = node.getCookie(RuntimeCookie.class).getRuntime();
-            runtime.start();
+            runtime.start(debug);
         }
     }
 

@@ -17,7 +17,7 @@ package org.mule.tooling.netbeans.runtime.node;
 
 import org.mule.tooling.netbeans.runtime.ui.MuleHomeView;
 import java.awt.event.ActionEvent;
-import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -80,7 +80,7 @@ public class MuleRuntimeServicesNode extends AbstractNode {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            File muleHome = MuleHomeView.capture();
+            Path muleHome = MuleHomeView.capture();
             if(muleHome != null) {
                 MuleSupport.getMuleRuntime(muleHome).register();
             }

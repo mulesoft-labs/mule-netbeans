@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -34,27 +35,27 @@ import org.junit.Test;
  */
 public class MuleRuntimeTest {
 
-    private File getMasterCopy() {
+    private Path getMasterCopy() {
         String muleHomeBase = new StringBuilder()
                 .append(System.getProperty("user.dir"))
                 .append(File.separator).append("src")
                 .append(File.separator).append("test")
                 .append(File.separator).append("mule-install").toString();
-        return new File(muleHomeBase);
+        return Paths.get(muleHomeBase);
     }
 
-    private File getMuleHome() {
+    private Path getMuleHome() {
         String muleHome = new StringBuilder()
                 .append(System.getProperty("user.dir"))
                 .append(File.separator).append("target")
                 .append(File.separator).append("mule-install").toString();
-        return new File(muleHome);
+        return Paths.get(muleHome);
     }
 
     @Before
     public void init() throws IOException {
-        final Path basePath = getMasterCopy().toPath();
-        final Path targetPath = getMuleHome().toPath();
+        final Path basePath = getMasterCopy();
+        final Path targetPath = getMuleHome();
         Files.walkFileTree(basePath, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
@@ -92,24 +93,24 @@ public class MuleRuntimeTest {
 
     @Test(expected = IllegalStateException.class)
     public void muleHomeDoesNotExist() throws Exception {
-        factory.create(new File(getMuleHome(), File.separator + "doesNotExists"));
+        factory.create(getMuleHome().resolve("doesNotExists"));
     }
 
     @Test(expected = IllegalStateException.class)
     public void libFolderDoesNotExist() throws Exception {
-        deleteDirectory(new File(getMuleHome(), File.separator + "lib"));
+        deleteDirectory(getMuleHome().resolve("lib").toFile());
         factory.create(getMuleHome());
     }
 
     @Test(expected = IllegalStateException.class)
     public void libBootFolderDoesNotExist() throws Exception {
-        deleteDirectory(new File(getMuleHome(), File.separator + "lib" + File.separator + "boot"));
+        deleteDirectory(getMuleHome().resolve("lib" + File.separator + "boot").toFile());
         factory.create(getMuleHome());
     }
 
     @Test(expected = IllegalStateException.class)
     public void bootJarDoesNotExist() throws Exception {
-        new File(getMuleHome(), File.separator + "lib" + File.separator + "boot" + File.separator + "mule-module-boot.jar").delete();
+        Files.delete(getMuleHome().resolve("lib" + File.separator + "boot" + File.separator + "mule-module-boot.jar"));
         factory.create(getMuleHome());
     }
 

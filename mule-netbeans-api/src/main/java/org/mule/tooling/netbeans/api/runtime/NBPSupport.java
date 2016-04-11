@@ -16,6 +16,10 @@
 package org.mule.tooling.netbeans.api.runtime;
 
 import java.awt.event.ActionEvent;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
@@ -40,6 +44,7 @@ public class NBPSupport {
     public static InputOutput getInputOutput(final MuleRuntime runtime) {
         Action[] actions = new Action[] {
             new StartAction(runtime),
+            new DebugAction(runtime),
             new StopAction(runtime)
         };
         InputOutput io = IOProvider.getDefault().getIO(runtime.getName(), actions);
@@ -94,7 +99,29 @@ public class NBPSupport {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            runtime.start();
+            runtime.start(false);
+        }
+    }
+    
+    @Messages({
+        "NBPSupport_DebugAction_name=Start in debug mode"
+    })
+    private static class DebugAction extends AbstractRuntimeAction {
+        @StaticResource
+        private static final String ICON = "org/mule/tooling/netbeans/api/runtime/debug.png";
+
+        public DebugAction(MuleRuntime runtime) {
+            super(runtime, Bundle.NBPSupport_StartAction_name(), ImageUtilities.loadImageIcon(ICON, false));
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return runtime.canStart();
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            runtime.start(true);
         }
     }
     

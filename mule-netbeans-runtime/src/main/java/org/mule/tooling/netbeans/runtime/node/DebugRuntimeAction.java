@@ -13,15 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.api;
+package org.mule.tooling.netbeans.runtime.node;
 
-import java.nio.file.Path;
+import org.openide.util.NbBundle.Messages;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface MuleRuntimeFactory {
+@Messages({
+    "DebugRuntimeAction_name=Start in debug mode"
+})
+public class DebugRuntimeAction extends StartRuntimeAction {
 
-    public MuleRuntime create(Path muleHome);
+    public DebugRuntimeAction() {
+        this.debug = true;
+    }
+
+    @Override
+    public String getName() {
+        return Bundle.DebugRuntimeAction_name();
+    }
 }

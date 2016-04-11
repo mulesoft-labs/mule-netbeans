@@ -18,6 +18,8 @@ package org.mule.tooling.netbeans.api.runtime;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.mule.tooling.netbeans.api.RuntimeVersion;
 import org.openide.util.Exceptions;
@@ -125,35 +127,35 @@ public class RuntimeUtils {
         }
     }
 
-    public static String detectWrapperExec(File muleHome) {
-        File libBootExec = new File(muleHome, "/lib/boot/exec");
-        File exec;
+    public static Path detectWrapperExecPath(Path muleHome) {
+        Path libBootExec = muleHome.resolve("lib/boot/exec");
+        Path exec;
         if (RuntimeUtils.RUNNING_OS.equals(RuntimeUtils.OS.MACOS)) {
-            exec = new File(libBootExec, "wrapper-macosx-universal-32");
-            if (exec.exists()) {
-                return exec.getAbsolutePath();
+            exec = libBootExec.resolve("wrapper-macosx-universal-32");
+            if (Files.exists(exec)) {
+                return exec;
             }
         } else if (RuntimeUtils.RUNNING_OS.equals(RuntimeUtils.OS.WINDOWS)) {
             if (RuntimeUtils.IS64) {
-                exec = new File(libBootExec, "wrapper-windows-x86-64.exe");
-                if (exec.exists()) {
-                    return exec.getAbsolutePath();
+                exec = libBootExec.resolve("wrapper-windows-x86-64.exe");
+                if (Files.exists(exec)) {
+                    return exec;
                 }
             }
-            exec = new File(libBootExec, "wrapper-windows-x86-32.exe");
-            if (exec.exists()) {
-                return exec.getAbsolutePath();
+            exec = libBootExec.resolve("wrapper-windows-x86-32.exe");
+            if (Files.exists(exec)) {
+                return exec;
             }
         } else if (RuntimeUtils.RUNNING_OS.equals(RuntimeUtils.OS.LINUX)) {
             if (RuntimeUtils.IS64) {
-                exec = new File(libBootExec, "wrapper-linux-x86-64");
-                if (exec.exists()) {
-                    return exec.getAbsolutePath();
+                exec = libBootExec.resolve("wrapper-linux-x86-64");
+                if (Files.exists(exec)) {
+                    return exec;
                 }
             }
-            exec = new File(libBootExec, "wrapper-linux-x86-32");
-            if (exec.exists()) {
-                return exec.getAbsolutePath();
+            exec = libBootExec.resolve("wrapper-linux-x86-32");
+            if (Files.exists(exec)) {
+                return exec;
             }
         }
         return null;

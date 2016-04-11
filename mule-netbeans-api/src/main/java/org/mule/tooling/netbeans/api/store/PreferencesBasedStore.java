@@ -16,8 +16,11 @@
 package org.mule.tooling.netbeans.api.store;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import org.mule.tooling.netbeans.api.MuleRuntime;
@@ -39,62 +42,76 @@ public class PreferencesBasedStore extends AbstractChangeSource implements MuleR
     private static final String NODES_RUNTIME_MH = "muleHome";
     private static final String NODES_RUNTIME_NAME = "name";
     private final Preferences PREFERENCES = NbPreferences.forModule(MuleSupport.class).node(RUNTIMES_NODE);
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    
     @Override
     public MuleRuntime get(String id) {
-        if(id == null || id.trim().length() == 0) {
+        if (id == null || id.trim().length() == 0) {
             throw new IllegalStateException("Invalid id");
         }
         try {
-            if(!PREFERENCES.nodeExists(id)) {
+            lock.readLock().lock();
+            if (!PREFERENCES.nodeExists(id)) {
                 throw new IllegalStateException("Runtime not registered");
             }
             Preferences runtimeNode = PREFERENCES.node(id);
             String muleHome = runtimeNode.get(NODES_RUNTIME_MH, null);
-            return MuleSupport.getMuleRuntime(new File(muleHome));
+            return MuleSupport.getMuleRuntime(Paths.get(muleHome));
         } catch (BackingStoreException ex) {
             Exceptions.printStackTrace(ex);
             throw new IllegalStateException("Could not process request", ex);
+        } finally {
+            lock.readLock().unlock();
         }
     }
-    
+
     @Override
     public List<String> getIds() {
         try {
+            lock.readLock().lock();
             List<String> ids = Arrays.asList(PREFERENCES.childrenNames());
             return ids;
         } catch (BackingStoreException ex) {
             Exceptions.printStackTrace(ex);
             throw new IllegalStateException("Could not process request", ex);
+        } finally {
+            lock.readLock().unlock();
         }
     }
-    
+
     @Override
     public void store(MuleRuntime runtime) {
-        Preferences runtimeNode = PREFERENCES.node(runtime.getId());
-        if(runtime.getName() != null) {
-            runtimeNode.put(NODES_RUNTIME_NAME, runtime.getName());
-        }
-        runtimeNode.put(NODES_RUNTIME_MH, runtime.getMuleHome().getAbsolutePath());
+        lock.writeLock().lock();
         try {
-            PREFERENCES.flush();
-            fireChange();
-        } catch (BackingStoreException ex) {
-            Exceptions.printStackTrace(ex);
+            Preferences runtimeNode = PREFERENCES.node(runtime.getId());
+            if (runtime.getName() != null) {
+                runtimeNode.put(NODES_RUNTIME_NAME, runtime.getName());
+            }
+            runtimeNode.put(NODES_RUNTIME_MH, runtime.getMuleHome().toAbsolutePath().toString());
+            try {
+                PREFERENCES.flush();
+                fireChange();
+            } catch (BackingStoreException ex) {
+                Exceptions.printStackTrace(ex);
+            }
+        } finally {
+            lock.writeLock().unlock();
         }
     }
-    
+
     @Override
     public void remove(MuleRuntime runtime) {
         try {
-            if(PREFERENCES.nodeExists(runtime.getId())) {
+            lock.readLock().lock();
+            if (PREFERENCES.nodeExists(runtime.getId())) {
                 PREFERENCES.node(runtime.getId()).removeNode();
                 PREFERENCES.flush();
                 fireChange();
             }
         } catch (BackingStoreException ex) {
             Exceptions.printStackTrace(ex);
+        } finally {
+            lock.readLock().unlock();
         }
     }
 }

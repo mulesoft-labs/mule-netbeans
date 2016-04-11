@@ -55,6 +55,7 @@
     <modules>
         <module>mule-netbeans-runtime</module>
         <module>mule-netbeans-api</module>
+        <module>mule-netbeans-config</module>
     </modules>
     <repositories>
         <repository>

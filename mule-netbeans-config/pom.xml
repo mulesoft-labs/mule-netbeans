@@ -6,22 +6,17 @@
         <artifactId>mule-netbeans</artifactId>
         <version>1.0</version>
     </parent>
-    <artifactId>mule-netbeans-api</artifactId>
+    <artifactId>mule-netbeans-config</artifactId>
     <packaging>nbm</packaging>
-    <name>Mule API</name>
     <version>0.4</version>
+    <name>Mule Configuration Support</name>
+    <description>Mule Configuration Support</description>
     <build>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
                 <extensions>true</extensions>
-                <configuration>
-                    <publicPackages>
-                        <publicPackage>org.mule.tooling.netbeans.api</publicPackage>
-                        <publicPackage>org.mule.tooling.netbeans.api.change</publicPackage>
-                    </publicPackages>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -36,53 +31,67 @@
         <dependency>
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-netbeans-api-annotations-common</artifactId>
-            <version>${netbeans-version}</version>
+            <version>RELEASE81</version>
         </dependency>
         <dependency>
             <groupId>org.netbeans.api</groupId>
-            <artifactId>org-openide-util</artifactId>
-            <version>${netbeans-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.netbeans.api</groupId>
-            <artifactId>org-openide-util-lookup</artifactId>
-            <version>${netbeans-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.netbeans.api</groupId>
-            <artifactId>org-openide-execution</artifactId>
-            <version>${netbeans-version}</version>
+            <artifactId>org-netbeans-api-templates</artifactId>
+            <version>RELEASE81</version>
         </dependency>
         <dependency>
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-openide-filesystems</artifactId>
-            <version>${netbeans-version}</version>
+            <version>RELEASE81</version>
         </dependency>
         <dependency>
             <groupId>org.netbeans.api</groupId>
-            <artifactId>org-netbeans-modules-extexecution</artifactId>
-            <version>${netbeans-version}</version>
+            <artifactId>org-openide-loaders</artifactId>
+            <version>RELEASE81</version>
         </dependency>
         <dependency>
             <groupId>org.netbeans.api</groupId>
-            <artifactId>org-openide-io</artifactId>
-            <version>${netbeans-version}</version>
+            <artifactId>org-openide-nodes</artifactId>
+            <version>RELEASE81</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-util</artifactId>
+            <version>RELEASE81</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-util-lookup</artifactId>
+            <version>RELEASE81</version>
         </dependency>
         <dependency>
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-openide-util-ui</artifactId>
-            <version>${netbeans-version}</version>
+            <version>RELEASE81</version>
         </dependency>
         <dependency>
             <groupId>org.netbeans.api</groupId>
-            <artifactId>org-netbeans-modules-extexecution-base</artifactId>
-            <version>${netbeans-version}</version>
+            <artifactId>org-openide-windows</artifactId>
+            <version>RELEASE81</version>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-text</artifactId>
+            <version>RELEASE81</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-core-multiview</artifactId>
+            <version>RELEASE81</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-awt</artifactId>
+            <version>RELEASE81</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-dialogs</artifactId>
+            <version>RELEASE81</version>
         </dependency>
     </dependencies>
 </project>

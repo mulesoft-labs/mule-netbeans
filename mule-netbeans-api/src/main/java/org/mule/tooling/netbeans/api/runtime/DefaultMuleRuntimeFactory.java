@@ -16,6 +16,7 @@
 package org.mule.tooling.netbeans.api.runtime;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.concurrent.ConcurrentHashMap;
 import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.mule.tooling.netbeans.api.MuleRuntimeFactory;
@@ -34,14 +35,14 @@ import org.openide.util.lookup.ServiceProviders;
 })
 public class DefaultMuleRuntimeFactory implements MuleRuntimeFactory, MuleRuntimeRegistry {
 
-    private final ConcurrentHashMap<File, MuleRuntime> registry = new ConcurrentHashMap<File, MuleRuntime>();
+    private final ConcurrentHashMap<Path, MuleRuntime> registry = new ConcurrentHashMap<Path, MuleRuntime>();
 
     @Override
-    public MuleRuntime create(File muleHome) {
+    public MuleRuntime create(Path muleHome) {
         return registry.getOrDefault(muleHome, doCreate(muleHome));
     }
 
-    private MuleRuntime doCreate(File muleHome) {
+    private MuleRuntime doCreate(Path muleHome) {
         return new DefaultMuleRuntime(this, muleHome);
     }
 

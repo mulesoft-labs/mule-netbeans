@@ -109,6 +109,7 @@ public class SingleRuntimeNode extends AbstractNode implements ChangeListener {
     public Action[] getActions(boolean context) {
         return new Action[]{
             SystemAction.get(StartRuntimeAction.class),
+            SystemAction.get(DebugRuntimeAction.class),
             SystemAction.get(StopRuntimeAction.class),
             SystemAction.get(ViewRuntimeLogsAction.class),
             null,
@@ -128,6 +129,7 @@ public class SingleRuntimeNode extends AbstractNode implements ChangeListener {
         
         @Override
         protected boolean createKeys(List<Class<? extends AbstractNode>> toPopulate) {
+            toPopulate.add(ConfigurationsNode.class);
             toPopulate.add(ApplicationsNode.class);
             toPopulate.add(DomainsNode.class);
             toPopulate.add(UserLibrariesNode.class);

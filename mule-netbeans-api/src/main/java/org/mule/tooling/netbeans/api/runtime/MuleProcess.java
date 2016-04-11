@@ -17,13 +17,15 @@ package org.mule.tooling.netbeans.api.runtime;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.mule.tooling.netbeans.api.Status;
-import org.mule.tooling.netbeans.api.change.AbstractChangeSource;
 import org.mule.tooling.netbeans.api.change.ChangeSupport;
 import org.netbeans.api.extexecution.ExecutionDescriptor;
 import org.netbeans.api.extexecution.ExecutionService;
@@ -44,19 +46,20 @@ class MuleProcess extends FileChangeAdapter implements InternalController {
 
     private static final Logger LOGGER = Logger.getLogger(MuleProcess.class.getName());
     private static final String ATTRIBUTE_STATUS = "status";
-    private static final String BIN_SUBDIR = File.separator + "bin";
+    private static final String BIN_SUBDIR = "bin";
     private static final RequestProcessor RP = new RequestProcessor("Mule Instance", 5); // NOI18N
     private final AtomicReference<Future<Integer>> processHolder = new AtomicReference<Future<Integer>>();
-    private String wrapperExec;
+    private Path wrapperExec;
     private InputOutput io;
     private DefaultMuleRuntime runtime;
     private Status status = Status.DOWN;
     private ChangeSupport cs;
+    private Path pidFilePath;
 
     MuleProcess(DefaultMuleRuntime runtime, ChangeSupport changeSupport) {
         this.runtime = runtime;
         this.cs = changeSupport;
-        this.wrapperExec = RuntimeUtils.detectWrapperExec(runtime.getMuleHome());
+        this.wrapperExec = RuntimeUtils.detectWrapperExecPath(runtime.getMuleHome());
     }
 
     protected void updateStatus(Status newStatus) {
@@ -79,27 +82,31 @@ class MuleProcess extends FileChangeAdapter implements InternalController {
 
     @Override
     public void initialize() {
-        FileUtil.addFileChangeListener(this, getPidFile());
+        pidFilePath = runtime.getMuleHome().resolve(BIN_SUBDIR + File.separator + RuntimeUtils.pidFileForVersion(runtime.getVersion()));
+        FileUtil.addFileChangeListener(this, pidFilePath.toFile());
         io = NBPSupport.getInputOutput(runtime);
+        io.closeInputOutput();
     }
 
     @Override
     public void shutdown() {
-        FileUtil.removeFileChangeListener(this, getPidFile());
+        FileUtil.removeFileChangeListener(this, pidFilePath.toFile());
         io.closeInputOutput();
         io = null;
     }
 
     public boolean isRunning() {
-        File pidFile = getPidFile();
-        if (!pidFile.exists()) {
+        if (!Files.exists(pidFilePath)) {
             return false;
         }
         try {
             String pid = getPidFromFile();
+            if(pid == null) {
+                return false;
+            }
             boolean processRunning = RuntimeUtils.isProcessRunning(pid);
             if (!processRunning) {
-                pidFile.delete();
+                Files.delete(pidFilePath);
             }
             return processRunning;
         } catch (IOException ex) {
@@ -112,7 +119,7 @@ class MuleProcess extends FileChangeAdapter implements InternalController {
         return !isRunning() && wrapperExec != null;
     }
 
-    public void start() {
+    public void start(final boolean debug) {
         if (processHolder.get() != null) {
             throw new IllegalStateException("Instance already running");
         }
@@ -135,30 +142,31 @@ class MuleProcess extends FileChangeAdapter implements InternalController {
                                     updateStatus(Status.DOWN);
                                 }
                             });
-                    ExecutionService service = ExecutionService.newService(startProcessBuilder(), descriptor, runtime.getName());
+                    ExecutionService service = ExecutionService.newService(startProcessBuilder(debug), descriptor, runtime.getName());
                     processHolder.set(service.run());
                 }
             }
         });
     }
 
-    private ExternalProcessBuilder startProcessBuilder() {
+    private ExternalProcessBuilder startProcessBuilder(boolean debug) {
         //TODO: allow all the parameter to be configurable
-        String muleHomeString = runtime.getMuleHome().getAbsolutePath();
-        ExternalProcessBuilder processBuilder = new ExternalProcessBuilder(wrapperExec)
+        String muleHomeString = runtime.getMuleHome().toAbsolutePath().toString();
+        ExternalProcessBuilder processBuilder = new ExternalProcessBuilder(wrapperExec.toAbsolutePath().toString())
                 .addArgument("--console")
                 .addEnvironmentVariable("MULE_APP_LONG", "Mule")
                 .addEnvironmentVariable("MULE_APP", "mule")
                 .addEnvironmentVariable("PWD", muleHomeString + File.separator + "bin")
                 .addEnvironmentVariable("MULE_HOME", muleHomeString)
                 .addEnvironmentVariable("MULE_BASE", muleHomeString)
+                .addEnvironmentVariable("JAVA_TOOL_OPTIONS", debug ? "-agentlib:jdwp=transport=dt_socket,address=5005,server=y,suspend=n" : "")
                 .workingDirectory(new File(muleHomeString, "/bin"));
         processBuilder = processBuilder.addArgument(muleHomeString + File.separator + "conf" + File.separator + "wrapper.conf");
 //        processBuilder = processBuilder.addArgument("wrapper.console.format=PM");
         processBuilder = processBuilder.addArgument("wrapper.console.format=M");
         processBuilder = processBuilder.addArgument("wrapper.console.flush=TRUE");
         processBuilder = processBuilder.addArgument("wrapper.syslog.ident=mule");
-        processBuilder = processBuilder.addArgument("wrapper.pidfile=" + getPidFile().getAbsolutePath());
+        processBuilder = processBuilder.addArgument("wrapper.pidfile=" + getPidFilePath().toAbsolutePath().toString());
         processBuilder = processBuilder.addArgument("wrapper.working.dir=" + muleHomeString);
         for (int i = 1; i < 9; i++) {
             processBuilder = processBuilder.addArgument("wrapper.app.parameter." + i + "=console0");
@@ -167,12 +175,17 @@ class MuleProcess extends FileChangeAdapter implements InternalController {
         return processBuilder;
     }
 
-    private File getPidFile() {
-        return new File(runtime.getMuleHome(), BIN_SUBDIR + File.separator + RuntimeUtils.pidFileForVersion(runtime.getVersion()));
+    private Path getPidFilePath() {
+        return pidFilePath;
     }
 
     private String getPidFromFile() throws IOException {
-        return new String(Files.readAllBytes(getPidFile().toPath())).replaceAll("[ \n]", "");
+        Path pidpath = getPidFilePath();
+        if (Files.exists(pidpath)) {
+            return new String(Files.readAllBytes(pidpath)).replaceAll("[ \n]", "");
+        } else {
+            return null;
+        }
     }
 
     public boolean canStop() {
@@ -195,7 +208,10 @@ class MuleProcess extends FileChangeAdapter implements InternalController {
                     processHolder.get().cancel(false);
                 } else {
                     try {
-                        RuntimeUtils.softStop(getPidFromFile());
+                        String pidFromFile = getPidFromFile();
+                        if (pidFromFile != null) {
+                            RuntimeUtils.softStop(pidFromFile);
+                        }
                     } catch (IOException ex) {
                         Exceptions.printStackTrace(ex);
                     }

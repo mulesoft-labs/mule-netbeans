@@ -16,6 +16,8 @@
 package org.mule.tooling.netbeans.runtime.ui;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
 import org.mule.tooling.netbeans.api.MuleSupport;
@@ -34,7 +36,7 @@ import org.openide.DialogDisplayer;
 })
 public class MuleHomeView extends javax.swing.JPanel {
     
-    public static File capture() {
+    public static Path capture() {
         final MuleHomeView view = new MuleHomeView();
         view.getAccessibleContext().setAccessibleDescription(Bundle.ConfigurationView_TitleAddMuleRuntime());
         DialogDescriptor dd = new DialogDescriptor(view, Bundle.ConfigurationView_AddRuntimeActionTitle());
@@ -66,8 +68,8 @@ public class MuleHomeView extends javax.swing.JPanel {
         return MuleSupport.getMuleRuntime(getMuleHome());
     }
         
-    public File getMuleHome() {
-        return new File(txtMuleHome.getText());
+    public Path getMuleHome() {
+        return Paths.get(txtMuleHome.getText());
     }
     
     @Messages({
