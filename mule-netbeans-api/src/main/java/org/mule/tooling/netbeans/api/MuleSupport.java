@@ -23,28 +23,25 @@ import org.openide.util.Lookup;
  * @author Facundo Lopez Kaufmann
  */
 public class MuleSupport {
-    
-    private static final MuleRuntimeStore STORE;
+
+    private static final Store STORE;
     private static final MuleRuntimeRegistry REGISTRY;
     private static final MuleRuntimeFactory FACTORY;
+
     static {
+        STORE = Lookup.getDefault().lookup(Store.class);
         FACTORY = Lookup.getDefault().lookup(MuleRuntimeFactory.class);
-        STORE = Lookup.getDefault().lookup(MuleRuntimeStore.class);
         REGISTRY = Lookup.getDefault().lookup(MuleRuntimeRegistry.class);
     }
-    
+
     public static MuleRuntime getMuleRuntime(Path muleHome) {
         return FACTORY.create(muleHome);
     }
-    
-    public static MuleRuntime getMuleRuntime(String id) {
-        return getStore().get(id);
-    }
-    
-    public static MuleRuntimeStore getStore() {
+
+    public static Store getStore() {
         return STORE;
     }
-    
+
     public static MuleRuntimeRegistry getRegistry() {
         return REGISTRY;
     }

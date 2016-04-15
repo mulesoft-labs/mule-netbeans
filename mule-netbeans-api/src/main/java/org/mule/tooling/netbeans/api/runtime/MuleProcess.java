@@ -96,7 +96,7 @@ class MuleProcess extends FileChangeAdapter implements InternalController {
     }
 
     public boolean isRunning() {
-        if (!Files.exists(pidFilePath)) {
+        if (!Files.exists(getPidFilePath())) {
             return false;
         }
         try {
@@ -106,7 +106,7 @@ class MuleProcess extends FileChangeAdapter implements InternalController {
             }
             boolean processRunning = RuntimeUtils.isProcessRunning(pid);
             if (!processRunning) {
-                Files.delete(pidFilePath);
+                Files.delete(getPidFilePath());
             }
             return processRunning;
         } catch (IOException ex) {

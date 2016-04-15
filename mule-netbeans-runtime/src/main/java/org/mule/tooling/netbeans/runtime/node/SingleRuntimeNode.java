@@ -58,7 +58,7 @@ public class SingleRuntimeNode extends AbstractNode implements ChangeListener {
 
     @Override
     public Image getIcon(int type) {
-        return IconUtil.getMuleServerIcon(getMuleRuntime().getStatus());
+        return IconUtil.getMuleServerIcon(getMuleRuntime().getStatus(), getCookieSet().getCookie(RuntimeCookie.class).isDebugging());
     }
 
     @Override

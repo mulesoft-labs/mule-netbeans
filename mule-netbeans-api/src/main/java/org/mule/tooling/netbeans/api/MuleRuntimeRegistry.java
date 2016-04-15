@@ -15,15 +15,20 @@
  */
 package org.mule.tooling.netbeans.api;
 
+import java.util.List;
+import org.mule.tooling.netbeans.api.change.ChangeSource;
+
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface MuleRuntimeRegistry {
+public interface MuleRuntimeRegistry extends ChangeSource {
 
     public boolean isRegistered(MuleRuntime runtime);
 
     public void register(MuleRuntime runtime);
 
     public void unregister(MuleRuntime runtime);
+
+    public List<MuleRuntime> getRegisteredRuntimes();
 }

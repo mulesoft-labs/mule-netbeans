@@ -9,7 +9,7 @@
     <artifactId>mule-netbeans-api</artifactId>
     <packaging>nbm</packaging>
     <name>Mule API</name>
-    <version>0.4</version>
+    <version>0.5</version>
     <build>
         <plugins>
             <plugin>

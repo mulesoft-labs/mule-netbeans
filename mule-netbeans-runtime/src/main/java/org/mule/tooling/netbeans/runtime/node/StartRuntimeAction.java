@@ -38,8 +38,7 @@ public class StartRuntimeAction extends NodeAction {
     @Override
     protected void performAction(Node[] activatedNodes) {
         for (Node node : activatedNodes) {
-            MuleRuntime runtime = node.getCookie(RuntimeCookie.class).getRuntime();
-            runtime.start(debug);
+            node.getCookie(RuntimeCookie.class).start(debug);
         }
     }
 

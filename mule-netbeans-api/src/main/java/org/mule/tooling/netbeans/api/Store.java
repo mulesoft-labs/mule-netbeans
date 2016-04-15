@@ -16,18 +16,18 @@
 package org.mule.tooling.netbeans.api;
 
 import java.util.List;
+import java.util.prefs.Preferences;
 
 /**
  * 
  * @author Facundo Lopez Kaufmann
  */
-public interface Store<T> {
-    
-    public T get(String id);
 
-    public List<String> getIds();
-
-    public void store(T instance);
+public interface Store {
     
-    public void remove(T instance);   
+    public Preferences get(String areaName, String id, boolean forceCreation);
+
+    public void remove(String areaName, String id);
+
+    public List<String> getIds(String areaName);
 }

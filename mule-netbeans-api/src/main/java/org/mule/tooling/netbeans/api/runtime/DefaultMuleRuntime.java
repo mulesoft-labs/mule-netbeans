@@ -21,6 +21,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -60,6 +62,7 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
     private static final IDGenerationStrategy IDGENERATOR = Lookup.getDefault().lookup(IDGenerationStrategy.class);
     private final MuleRuntimeRegistry registry;
     private final Path muleHome;
+    private final Lock lock = new ReentrantLock();
     private ApplicationsInternalController apps;
     private DomainsInternalController domains;
     private UserLibrariesInternalController libs;
@@ -68,12 +71,18 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
     private JarFile bootJar;
     private RuntimeVersion version;
     private MuleProcess process;
+    private boolean doRegistration = true;
 
     public DefaultMuleRuntime(MuleRuntimeRegistry registry, Path muleHome) {
         super();
         this.registry = registry;
         this.muleHome = muleHome;
         init();
+    }
+
+    public DefaultMuleRuntime(MuleRuntimeRegistry registry, Path muleHome, boolean doRegistration) {
+        this(registry, muleHome);
+        this.doRegistration = doRegistration;
     }
 
     /**
@@ -119,7 +128,7 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
         String[] parts = version.getNumber().split("\\.");
         int major = Integer.valueOf(parts[0]);
         int minor = Integer.valueOf(parts[1]);
-        if ((version.getBranch().equals(BRANCH_API_GW) && major == 1) || (minor < 6)) {
+        if ((version.getBranch().equals(BRANCH_API_GW) && major == 1) || (!version.getBranch().equals(BRANCH_API_GW) && major == 3 && minor < 6)) {
             addConfiguration(Configuration.LOGS, muleHome.resolve("conf/log4j.properties").toFile());
         } else {
             addConfiguration(Configuration.LOGS, muleHome.resolve("conf/log4j2.xml").toFile());
@@ -143,29 +152,42 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
 
     @Override
     public void register() {
-        if (isRegistered()) {
-            throw new IllegalStateException("Runtime already registered");
+        lock.lock();
+        try {
+            if (doRegistration && isRegistered()) {
+                throw new IllegalStateException("Runtime already registered");
+            }
+            if (id == null) {
+                this.id = IDGENERATOR.newId();
+            }
+            if(doRegistration) {
+                registry.register(this);
+            }
+            domains.initialize();
+            apps.initialize();
+            libs.initialize();
+            process.initialize();
+            fireChange();
+            doRegistration = true;
+        } finally {
+            lock.unlock();
         }
-        if (id == null) {
-            this.id = IDGENERATOR.newId();
-        }
-        registry.register(this);
-        domains.initialize();
-        apps.initialize();
-        libs.initialize();
-        process.initialize();
-        fireChange();
     }
 
     @Override
     public void unregister() {
-        registry.unregister(this);
-        id = null;
-        domains.shutdown();
-        apps.shutdown();
-        libs.shutdown();
-        process.shutdown();
-        fireChange();
+        lock.lock();
+        try {
+            registry.unregister(this);
+            id = null;
+            domains.shutdown();
+            apps.shutdown();
+            libs.shutdown();
+            process.shutdown();
+            fireChange();
+        } finally {
+            lock.unlock();
+        }
     }
 
     //---Instance handling methods

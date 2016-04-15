@@ -18,6 +18,8 @@ package org.mule.tooling.netbeans.runtime.node;
 import org.mule.tooling.netbeans.runtime.ui.MuleHomeView;
 import java.awt.event.ActionEvent;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -91,9 +93,13 @@ public class MuleRuntimeServicesNode extends AbstractNode {
 
         @Override
         protected boolean createKeys(List<MuleRuntime> toPopulate) {
-            for (String id : MuleSupport.getStore().getIds()) {
-                toPopulate.add(MuleSupport.getMuleRuntime(id));
-            }
+            toPopulate.addAll(MuleSupport.getRegistry().getRegisteredRuntimes());
+            Collections.sort(toPopulate, new Comparator<MuleRuntime>() {
+                @Override
+                public int compare(MuleRuntime o1, MuleRuntime o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            });
             return true;
         }
 
@@ -104,12 +110,12 @@ public class MuleRuntimeServicesNode extends AbstractNode {
 
         @Override
         protected void addNotify() {
-            MuleSupport.getStore().addChangeListener(this);
+            MuleSupport.getRegistry().addChangeListener(this);
         }
 
         @Override
         protected void removeNotify() {
-            MuleSupport.getStore().removeChangeListener(this);
+            MuleSupport.getRegistry().removeChangeListener(this);
         }
 
         @Override

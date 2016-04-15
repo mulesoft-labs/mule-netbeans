@@ -57,6 +57,8 @@ public class IconUtil {
     @StaticResource
     private static final String RUNNING_BADGE_ICON = "org/mule/tooling/netbeans/runtime/resources/running-badge.png";  //NOI18N
     @StaticResource
+    private static final String DEBUGGING_BADGE_ICON = "org/mule/tooling/netbeans/runtime/resources/debugging-badge.png";  //NOI18N
+    @StaticResource
     private static final String WAITING_BADGE_ICON = "org/mule/tooling/netbeans/runtime/resources/waiting-badge.png";  //NOI18N
 
     /**
@@ -104,13 +106,13 @@ public class IconUtil {
         return ImageUtilities.loadImage(CONFIG_ICON, true);
     }
 
-    public static Image getMuleServerIcon(Status status) {
+    public static Image getMuleServerIcon(Status status, boolean debug) {
         Image icon = ImageUtilities.mergeImages(ImageUtilities.loadImage(SERVER_ICON),
                 ImageUtilities.loadImage(MULE_BADGE_ICON), //NOI18N
                 8, 0);
         if (status.equals(Status.RUNNING)) {
             icon = ImageUtilities.mergeImages(icon,
-                    ImageUtilities.loadImage(RUNNING_BADGE_ICON), //NOI18N
+                    ImageUtilities.loadImage(debug ? DEBUGGING_BADGE_ICON : RUNNING_BADGE_ICON), //NOI18N
                     9, 9);
         } else if (status.equals(Status.STARTING)) {
             icon = ImageUtilities.mergeImages(icon,
