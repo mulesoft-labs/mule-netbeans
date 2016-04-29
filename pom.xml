@@ -3,6 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.mule.tooling.netbeans</groupId>
     <artifactId>mule-netbeans</artifactId>
+    <name>Mule Tools for NetBeans</name>
     <description>NetBeans Support for Mule</description>
     <version>1.0</version>
     <packaging>pom</packaging>
@@ -20,15 +21,6 @@
     <build>
         <pluginManagement>
             <plugins>
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>nbm-maven-plugin</artifactId>
-                    <version>4.0.1</version>
-                    <extensions>true</extensions>
-                    <configuration>
-                        <cluster>mule</cluster>
-                    </configuration>
-                </plugin>
                 <plugin>
                     <!-- NetBeans 6.9+ requires JDK 6, starting NetBeans 7.4 source 1.7 is required -->
                     <groupId>org.apache.maven.plugins</groupId>
@@ -53,9 +45,11 @@
         </pluginManagement>
     </build>
     <modules>
-        <module>mule-netbeans-runtime</module>
-        <module>mule-netbeans-api</module>
-        <module>mule-netbeans-config</module>
+        <!--<module>mule-netbeans-runtime</module>-->
+        <!--<module>mule-netbeans-api</module>-->
+        <!--<module>mule-netbeans-config</module>-->
+        <module>mule-netbeans-xml</module>
+        <module>mule-netbeans-plugin</module>
     </modules>
     <repositories>
         <repository>

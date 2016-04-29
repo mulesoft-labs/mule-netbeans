@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+OpenIDE-Module-Localizing-Bundle: org/mule/tooling/netbeans/Bundle.properties
+OpenIDE-Module: org.mule.tooling.netbeans
+
