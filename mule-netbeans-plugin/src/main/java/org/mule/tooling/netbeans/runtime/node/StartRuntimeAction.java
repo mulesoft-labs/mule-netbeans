@@ -38,14 +38,14 @@ public class StartRuntimeAction extends NodeAction {
     @Override
     protected void performAction(Node[] activatedNodes) {
         for (Node node : activatedNodes) {
-            node.getCookie(RuntimeCookie.class).start(debug);
+            node.getLookup().lookup(RuntimeCookie.class).start(debug);
         }
     }
 
     @Override
     protected boolean enable(Node[] activatedNodes) {
         for (Node node : activatedNodes) {
-            RuntimeCookie cookie = node.getCookie(RuntimeCookie.class);
+            RuntimeCookie cookie = node.getLookup().lookup(RuntimeCookie.class);
             if(cookie == null) {
                 return false;
             }

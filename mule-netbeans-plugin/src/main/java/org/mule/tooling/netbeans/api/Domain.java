@@ -19,5 +19,6 @@ package org.mule.tooling.netbeans.api;
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface Domain extends Named {
+public interface Domain extends Named, LibrariesContainer, ConfigurationsContainer {
+
 }

@@ -16,56 +16,69 @@
 package org.mule.tooling.netbeans.runtime.node;
 
 import java.awt.Image;
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.List;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
-import org.mule.tooling.netbeans.api.Configuration;
-import org.mule.tooling.netbeans.api.ConfigurationsContainer;
+import org.mule.tooling.netbeans.api.Library;
 import org.mule.tooling.netbeans.common.IconUtil;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
+import org.openide.util.NbBundle;
+import org.mule.tooling.netbeans.api.LibrariesContainer;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle.Messages;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-@Messages({
-    "ConfigurationsNode_displayName=Configurations",
-    "ConfigurationsNode_shortDescription=Runtime configuration files"
+@NbBundle.Messages({
+    "LibrariesNode_shortDescription=List of libraries"
 })
-public class ConfigurationsNode extends AbstractNode {
+public class LibrariesNode extends AbstractNode {
 
-    public ConfigurationsNode(final Lookup lookup) {
+    public LibrariesNode(String name, Lookup lookup) {
         super(Children.create(new AbstractFileChildFactory(lookup) {
             @Override
             protected boolean createKeys(List<File> toPopulate) {
-                ConfigurationsContainer cc = lookup.lookup(ConfigurationsContainer.class);
-                for (Configuration configuration : cc.getConfigurations()) {
-                    toPopulate.add(configuration.getFile());
+                LibrariesContainer lc = lookup.lookup(LibrariesContainer.class);
+                for (Library library : lc.getLibraries()) {
+                    toPopulate.add(library.getFile());
                 }
                 return true;
             }
         }, true));
-        setDisplayName(Bundle.ConfigurationsNode_displayName());
-        setShortDescription(Bundle.ConfigurationsNode_displayName());
+        setDisplayName(name);
+        setShortDescription(Bundle.LibrariesNode_shortDescription());
     }
 
     @Override
     public Image getIcon(int param) {
-        return IconUtil.getTreeFolderIconWithBadge(false, IconUtil.BADGE_CONFIG);
+        return IconUtil.getTreeFolderIconWithBadge(false, IconUtil.BADGE_LIBRARIES);
     }
 
     @Override
     public Image getOpenedIcon(int param) {
-        return IconUtil.getTreeFolderIconWithBadge(true, IconUtil.BADGE_CONFIG);
+        return IconUtil.getTreeFolderIconWithBadge(true, IconUtil.BADGE_LIBRARIES);
     }
 
     //--- Actions ---
     @Override
     public Action[] getActions(boolean context) {
         return new Action[]{
+            new AddLibraryAction()
         };
+    }
+
+    public static class AddLibraryAction extends AbstractAction {
+
+        public AddLibraryAction() {
+            putValue(Action.NAME, "Add");
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+        }
     }
 }

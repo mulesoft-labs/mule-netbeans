@@ -16,20 +16,17 @@
 package org.mule.tooling.netbeans.runtime.node;
 
 import java.awt.Image;
-import java.io.IOException;
 import java.util.List;
-import javax.swing.Action;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.mule.tooling.netbeans.api.Application;
-import org.mule.tooling.netbeans.api.Library;
 import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.mule.tooling.netbeans.common.IconUtil;
 import org.openide.nodes.AbstractNode;
-import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
+import org.openide.util.Lookup;
+import org.openide.util.NbBundle;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.lookup.Lookups;
 
 /**
  *
@@ -57,19 +54,13 @@ public class ApplicationsNode extends AbstractNode {
         return IconUtil.getTreeFolderIcon(true);
     }
 
-    //--- Actions ---
-    @Override
-    public Action[] getActions(boolean context) {
-        return new Action[]{
-        };
-    }
-
     //--- ChildFactory ---
-    private static class ApplicationsChildFactory extends ChildFactory.Detachable<Application> implements ChangeListener {
+    private static class ApplicationsChildFactory extends AbstractChildFactory<Application> {
 
         private MuleRuntime runtime;
 
         private ApplicationsChildFactory(MuleRuntime muleRuntime) {
+            super(Lookup.EMPTY);
             this.runtime = muleRuntime;
         }
 
@@ -83,37 +74,32 @@ public class ApplicationsNode extends AbstractNode {
         protected Node createNodeForKey(Application key) {
             return new ApplicationNode(key);
         }
-
-        @Override
-        protected void addNotify() {
-            runtime.addChangeListener(this);
-        }
-
-        @Override
-        protected void removeNotify() {
-            runtime.removeChangeListener(this);
-        }
-
-        @Override
-        public void stateChanged(ChangeEvent e) {
-            refresh(false);
-        }
     }
-    
-    @Messages({
-        "ApplicationsNode_ApplicationNode_name=Name:<b> {0} </b><p>",
-        "ApplicationsNode_ApplicationNode_domain=Domain:<b> {0} </b><p>",
-        "ApplicationsNode_ApplicationNode_libs=Libs:<p>",
-        "ApplicationsNode_ApplicationNode_libitem=<b> - {0} </b><p>",
-    })
+
+    @NbBundle.Messages({
+        "ApplicationNode_name=Name:<b> {0} </b><p>",
+        "ApplicationNode_domain=Domain:<b> {0} </b><p>"})
     public static class ApplicationNode extends AbstractNode {
-        
+
+        private static Children createChildren(Application app) {
+            Children.Array arr = new Children.Array();
+            arr.add(new Node[]{
+                new ConfigurationsNode(Lookups.singleton(app)),
+                new LibrariesNode("Libraries", Lookups.singleton(app))
+            });
+            return arr;
+        }
+
         private Application app;
-        
+
         public ApplicationNode(Application app) {
-            super(Children.LEAF);
+            super(createChildren(app));
             this.app = app;
-            setDisplayName(app.getName());
+            String name = app.getName();
+            if (app.getDomainName().length() != 0) {
+                name += " (" + app.getDomainName() + ")";
+            }
+            setDisplayName(name);
         }
 
         @Override
@@ -122,27 +108,18 @@ public class ApplicationsNode extends AbstractNode {
         }
 
         @Override
-        public Action[] getActions(boolean context) {
-            return new Action[]{};
-        }
-    
-        @Override 
-        public String getShortDescription() {
-            StringBuilder buffer = new StringBuilder();
-            buffer.append("<html>");//NOI18N
-            buffer.append(Bundle.ApplicationsNode_ApplicationNode_name(app.getName()));
-            buffer.append(Bundle.ApplicationsNode_ApplicationNode_domain(app.getDomainName()));
-            buffer.append(Bundle.ApplicationsNode_ApplicationNode_libs());
-            for (Library lib : app.getLibraries()) {
-                buffer.append(Bundle.ApplicationsNode_ApplicationNode_libitem(lib.getName()));
-            }
-            buffer.append("</html>");//NOI18N
-            return buffer.toString();
+        public Image getOpenedIcon(int type) {
+            return IconUtil.getMuleIcon();
         }
 
         @Override
-        public void destroy() throws IOException {
-            super.destroy();
+        public String getShortDescription() {
+            StringBuilder buffer = new StringBuilder();
+            buffer.append("<html>");//NOI18N
+            buffer.append(Bundle.ApplicationNode_name(app.getName()));
+            buffer.append(Bundle.ApplicationNode_domain(app.getDomainName()));
+            buffer.append("</html>");//NOI18N
+            return buffer.toString();
         }
 
         @Override

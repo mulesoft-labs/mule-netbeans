@@ -15,7 +15,6 @@
  */
 package org.mule.tooling.netbeans.api;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 import org.mule.tooling.netbeans.api.change.ChangeSource;
@@ -24,7 +23,7 @@ import org.mule.tooling.netbeans.api.change.ChangeSource;
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface MuleRuntime extends ChangeSource {
+public interface MuleRuntime extends ChangeSource, LibrariesContainer, ConfigurationsContainer {
 
     public static final String BRANCH_MULE = "Mule";
     public static final String BRANCH_API_GW = "API Gateway";
@@ -41,10 +40,6 @@ public interface MuleRuntime extends ChangeSource {
     public List<Application> getApplications();
     
     public List<Domain> getDomains();
-    
-    public List<Library> getLibraries();
-    
-    public List<Configuration> getConfigurations();
 
     public Status getStatus();
 

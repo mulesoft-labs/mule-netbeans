@@ -15,13 +15,14 @@
  */
 package org.mule.tooling.netbeans.api;
 
-import java.io.File;
+import java.util.List;
+import org.mule.tooling.netbeans.api.change.ChangeSource;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface Library extends Named {
+public interface LibrariesContainer {
 
-    public File getFile();
+    public List<Library> getLibraries();
 }

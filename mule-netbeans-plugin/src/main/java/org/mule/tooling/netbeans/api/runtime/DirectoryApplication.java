@@ -24,21 +24,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import org.mule.tooling.netbeans.api.Application;
+import org.mule.tooling.netbeans.api.Configuration;
 import org.mule.tooling.netbeans.api.Library;
 import org.mule.tooling.netbeans.api.Status;
+import org.mule.tooling.netbeans.api.change.AbstractChangeSource;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public class DirectoryApplication implements Application {
+public class DirectoryApplication extends AbstractChangeSource implements Application {
     
     private static final Logger LOGGER = Logger.getLogger(DirectoryApplication.class.getName());
-    private static final Pattern JAR_PATTERN = Pattern.compile("(.*?)\\.jar"); // NOI18N
     private final File path;
     private final Properties muleDeployProperties;
     private Status status = Status.DOWN;
@@ -68,7 +67,7 @@ public class DirectoryApplication implements Application {
         File[] children = new File(path, "lib").listFiles(new FileFilter() {
             @Override
             public boolean accept(File pathname) {
-                return JAR_PATTERN.matcher(pathname.getName()).matches();
+                return FileHelper.isJar(pathname.getName());
             }
         });
         if(children == null) {
@@ -95,8 +94,13 @@ public class DirectoryApplication implements Application {
     }
 
     @Override
-    public List<String> getConfigs() {
-        return Arrays.asList(muleDeployProperties.getProperty("config.resources", "").split(","));
+    public List<Configuration> getConfigurations() {
+        List<String> resources = Arrays.asList(muleDeployProperties.getProperty("config.resources", "").split(","));
+        List<Configuration> configs = new ArrayList<Configuration>(resources.size());
+        for (String resource : resources) {
+            configs.add(new FileConfiguration(resource, new File(path, resource)));
+        }
+        return configs;
     }
 
     @Override

@@ -17,7 +17,6 @@ package org.mule.tooling.netbeans.runtime.node;
 
 import java.awt.Image;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.util.List;
 import javax.swing.Action;
 import javax.swing.event.ChangeEvent;
@@ -27,28 +26,26 @@ import org.mule.tooling.netbeans.api.change.AttributeChangeEvent;
 import org.mule.tooling.netbeans.common.IconUtil;
 import org.openide.actions.DeleteAction;
 import org.openide.nodes.AbstractNode;
-import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
-import org.openide.util.Exceptions;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.RequestProcessor;
 import org.openide.util.actions.SystemAction;
+import org.openide.util.lookup.Lookups;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
 @Messages({
-        "SingleRuntimeNode_shortDescription_name=Name:<b> {0} </b><p>",
-        "SingleRuntimeNode_shortDescription_version=Version:<b> {0} </b><p>",
-        "SingleRuntimeNode_shortDescription_muleHome=Mule Home:<b> {0} </b><p>",
-        "SingleRuntimeNode_shortDescription_status=Status:<b> {0} </b><p>",
-    })
+    "SingleRuntimeNode_shortDescription_name=Name:<b> {0} </b><p>",
+    "SingleRuntimeNode_shortDescription_version=Version:<b> {0} </b><p>",
+    "SingleRuntimeNode_shortDescription_muleHome=Mule Home:<b> {0} </b><p>",
+    "SingleRuntimeNode_shortDescription_status=Status:<b> {0} </b><p>",})
 public class SingleRuntimeNode extends AbstractNode implements ChangeListener {
 
     protected static final RequestProcessor RP = new RequestProcessor("Mule server control", 10);
-    
+
     public SingleRuntimeNode(MuleRuntime muleRuntime) {
         super(Children.create(new RuntimeNodeChildFactory(muleRuntime), true));
         setName(muleRuntime.getId());
@@ -66,11 +63,10 @@ public class SingleRuntimeNode extends AbstractNode implements ChangeListener {
     public Image getOpenedIcon(int type) {
         return getIcon(type);
     }
-    
 
     @Override
     public void stateChanged(ChangeEvent e) {
-        if(e instanceof AttributeChangeEvent && ((AttributeChangeEvent)e).getAttributeName().equals("status")) {
+        if (e instanceof AttributeChangeEvent && ((AttributeChangeEvent) e).getAttributeName().equals("status")) {
             fireIconChange();
         }
     }
@@ -81,8 +77,8 @@ public class SingleRuntimeNode extends AbstractNode implements ChangeListener {
         getMuleRuntime().removeChangeListener(this);
         getMuleRuntime().unregister();
     }
-    
-    @Override 
+
+    @Override
     public String getShortDescription() {
         MuleRuntime muleRuntime = getMuleRuntime();
         StringBuilder buffer = new StringBuilder();
@@ -103,9 +99,8 @@ public class SingleRuntimeNode extends AbstractNode implements ChangeListener {
     public boolean canDestroy() {
         return true;
     }
-    
+
     //--- Actions ---
-    
     @Override
     public Action[] getActions(boolean context) {
         return new Action[]{
@@ -116,51 +111,43 @@ public class SingleRuntimeNode extends AbstractNode implements ChangeListener {
             null,
             SystemAction.get(TerminateRuntimeAction.class),
             null,
-            DeleteAction.get(DeleteAction.class),
-        };
+            DeleteAction.get(DeleteAction.class),};
     }
-    
+
     //--- ChildFactory ---
-    
-    private static class RuntimeNodeChildFactory extends ChildFactory.Detachable<Class<? extends AbstractNode>> implements ChangeListener {
-        private MuleRuntime runtime;
+    private static class RuntimeNodeChildFactory extends AbstractChildFactory<Class<? extends AbstractNode>> {
+
         private RuntimeNodeChildFactory(MuleRuntime muleRuntime) {
-            this.runtime = muleRuntime;
+            super(Lookups.singleton(muleRuntime));
         }
-        
+
         @Override
         protected boolean createKeys(List<Class<? extends AbstractNode>> toPopulate) {
             toPopulate.add(ConfigurationsNode.class);
             toPopulate.add(ApplicationsNode.class);
             toPopulate.add(DomainsNode.class);
-            toPopulate.add(UserLibrariesNode.class);
+            toPopulate.add(LibrariesNode.class);
             return true;
         }
 
         @Override
         protected Node createNodeForKey(Class<? extends AbstractNode> key) {
-            try {
-                Constructor<? extends AbstractNode> constructor = key.getConstructor(MuleRuntime.class);
-                return constructor.newInstance(runtime);
-            } catch (Exception ex) {
-                Exceptions.printStackTrace(ex);
-                throw new IllegalStateException(ex);
+            MuleRuntime runtime = lookup.lookup(MuleRuntime.class);
+            if (ConfigurationsNode.class.equals(key)) {
+                return new ConfigurationsNode(Lookups.singleton(runtime));
+            } else if (ApplicationsNode.class.equals(key)) {
+                return new ApplicationsNode(runtime);
+            } else if (DomainsNode.class.equals(key)) {
+                return new DomainsNode(runtime);
+            } else if (LibrariesNode.class.equals(key)) {
+                return new LibrariesNode("User Libraries", Lookups.singleton(runtime));
             }
-        }
-
-        @Override
-        protected void addNotify() {
-            runtime.addChangeListener(this);
-        }
-
-        @Override
-        protected void removeNotify() {
-            runtime.removeChangeListener(this);
+            throw new IllegalStateException("Unrecognized node type: " + key);
         }
 
         @Override
         public void stateChanged(ChangeEvent e) {
-            if(e instanceof AttributeChangeEvent && ((AttributeChangeEvent)e).getAttributeName().equals("status")) {
+            if (e instanceof AttributeChangeEvent && ((AttributeChangeEvent) e).getAttributeName().equals("status")) {
                 refresh(true);
             }
         }

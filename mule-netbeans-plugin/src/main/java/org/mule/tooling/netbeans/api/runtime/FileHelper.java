@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.api;
+package org.mule.tooling.netbeans.api.runtime;
 
-import java.io.File;
+import java.util.regex.Pattern;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface Library extends Named {
+public class FileHelper {
 
-    public File getFile();
+    private static final Pattern JAR_PATTERN = Pattern.compile("(.*?)\\.jar"); // NOI18N
+
+    public static boolean isJar(String name) {
+        return JAR_PATTERN.matcher(name).matches();
+    }
 }

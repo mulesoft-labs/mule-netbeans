@@ -16,19 +16,17 @@
 package org.mule.tooling.netbeans.runtime.node;
 
 import java.awt.Image;
-import java.io.IOException;
 import java.util.List;
 import javax.swing.Action;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.mule.tooling.netbeans.api.Domain;
 import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.mule.tooling.netbeans.common.IconUtil;
 import org.openide.nodes.AbstractNode;
-import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
+import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.lookup.Lookups;
 
 /**
  *
@@ -64,11 +62,12 @@ public class DomainsNode extends AbstractNode {
     }
 
     //--- ChildFactory ---
-    private static class DomainsChildFactory extends ChildFactory.Detachable<Domain> implements ChangeListener {
+    private static class DomainsChildFactory extends AbstractChildFactory<Domain> {
 
         private MuleRuntime runtime;
 
         private DomainsChildFactory(MuleRuntime muleRuntime) {
+            super(Lookup.EMPTY);
             this.runtime = muleRuntime;
         }
 
@@ -82,28 +81,22 @@ public class DomainsNode extends AbstractNode {
         protected Node createNodeForKey(Domain key) {
             return new DomainNode(key);
         }
-
-        @Override
-        protected void addNotify() {
-            runtime.addChangeListener(this);
-        }
-
-        @Override
-        protected void removeNotify() {
-            runtime.removeChangeListener(this);
-        }
-
-        @Override
-        public void stateChanged(ChangeEvent e) {
-            refresh(false);
-        }
+    }
+    
+    private static Children createDomainNodeChildren(Domain domain) {
+        Children.Array arr = new Children.Array();
+        arr.add(new Node[]{
+            new ConfigurationsNode(Lookups.singleton(domain)),
+            new LibrariesNode("Libraries", Lookups.singleton(domain))
+        });
+        return arr;
     }
 
     public static class DomainNode extends AbstractNode {
 
-        public DomainNode(Domain domainName) {
-            super(Children.LEAF);
-            setDisplayName(domainName.getName());
+        public DomainNode(Domain domain) {
+            super(createDomainNodeChildren(domain));
+            setDisplayName(domain.getName());
         }
 
         @Override
@@ -112,13 +105,8 @@ public class DomainsNode extends AbstractNode {
         }
 
         @Override
-        public Action[] getActions(boolean context) {
-            return new Action[]{};
-        }
-
-        @Override
-        public void destroy() throws IOException {
-            super.destroy();
+        public Image getOpenedIcon(int type) {
+            return getIcon(type);
         }
 
         @Override

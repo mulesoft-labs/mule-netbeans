@@ -15,19 +15,15 @@
  */
 package org.mule.tooling.netbeans.api;
 
-import java.util.List;
+import org.mule.tooling.netbeans.api.change.ChangeSource;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface Application extends Named {
+public interface Application extends Named, ChangeSource, LibrariesContainer, ConfigurationsContainer {
 
     public String getDomainName();
 
     public Status getStatus();
-
-    public List<String> getConfigs();
-
-    public List<Library> getLibraries();
 }

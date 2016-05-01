@@ -16,22 +16,52 @@
 package org.mule.tooling.netbeans.api.runtime;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import org.mule.tooling.netbeans.api.Configuration;
 import org.mule.tooling.netbeans.api.Domain;
+import org.mule.tooling.netbeans.api.Library;
+import org.mule.tooling.netbeans.api.change.AbstractChangeSource;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public class DirectoryDomain implements Domain {
+public class DirectoryDomain extends AbstractChangeSource implements Domain {
     
+    private static final String CONFIG_NAME = "mule-domain-config.xml";
     private final File path;
+    private List<Library> libs = new ArrayList<Library>();
 
     public DirectoryDomain(File path) {
         this.path = path;
+        File[] children = new File(path, "lib").listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                return FileHelper.isJar(pathname.getName());
+            }
+        });
+        if(children == null) {
+            return;
+        }
+        for (File file : children) {
+            libs.add(new JarLibrary(file));
+        }
     }
     
     @Override
     public String getName() {
         return path.getName();
+    }
+    @Override
+    public List<Library> getLibraries() {
+        return libs;
+    }
+
+    @Override
+    public List<Configuration> getConfigurations() {
+        return Collections.<Configuration>singletonList(new FileConfiguration(CONFIG_NAME, new File(path, CONFIG_NAME)));
     }
 }

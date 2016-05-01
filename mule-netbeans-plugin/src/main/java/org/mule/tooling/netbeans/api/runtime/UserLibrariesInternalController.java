@@ -16,7 +16,6 @@
 package org.mule.tooling.netbeans.api.runtime;
 
 import java.io.File;
-import java.util.regex.Pattern;
 import org.mule.tooling.netbeans.api.Library;
 import org.mule.tooling.netbeans.api.change.ChangeSupport;
 import org.openide.filesystems.FileEvent;
@@ -28,15 +27,13 @@ import org.openide.filesystems.FileRenameEvent;
  */
 public class UserLibrariesInternalController extends AbstractInternalController<Library> {
 
-    private static final Pattern JAR_PATTERN = Pattern.compile("(.*?)\\.jar"); // NOI18N
-
     public UserLibrariesInternalController(File libPath, ChangeSupport cs) {
         super(libPath, cs);
     }
 
     @Override
     protected boolean doAccept(File pathname) {
-        return JAR_PATTERN.matcher(pathname.getName()).matches();
+        return FileHelper.isJar(pathname.getName());
     }
 
     @Override
@@ -56,14 +53,14 @@ public class UserLibrariesInternalController extends AbstractInternalController<
 
     @Override
     public void fileDeleted(FileEvent fe) {
-        if (JAR_PATTERN.matcher(fe.getFile().getName()).matches()) {
+        if (FileHelper.isJar(fe.getFile().getName())) {
             remove(fe.getFile().getName());
         }
     }
 
     @Override
     public void fileRenamed(FileRenameEvent fe) {
-        if (JAR_PATTERN.matcher(fe.getFile().getName()).matches()) {
+        if (FileHelper.isJar(fe.getFile().getName())) {
             remove(fe.getName());
             add(new File(fe.getFile().getPath()), true);
         }

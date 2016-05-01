@@ -46,7 +46,7 @@ public class BasicStore implements Store {
         try {
             Preferences area = getArea(areaName);
             if (!area.nodeExists(id) && !forceCreation) {
-                throw new IllegalStateException("Runtime not registered");
+                throw new IllegalStateException("The node '" + id + "' does not exist");
             }
             Preferences runtimeNode = area.node(id);
             area.flush();

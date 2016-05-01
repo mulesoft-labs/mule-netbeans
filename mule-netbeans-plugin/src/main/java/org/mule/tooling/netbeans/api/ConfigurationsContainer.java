@@ -15,13 +15,13 @@
  */
 package org.mule.tooling.netbeans.api;
 
-import java.io.File;
+import java.util.List;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface Library extends Named {
+public interface ConfigurationsContainer {
 
-    public File getFile();
+    public List<Configuration> getConfigurations();
 }

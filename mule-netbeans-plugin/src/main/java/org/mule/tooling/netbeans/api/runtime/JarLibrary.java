@@ -33,4 +33,8 @@ public class JarLibrary implements Library {
     public String getName() {
         return path.getName();
     }
+    
+    public File getFile() {
+        return path;
+    }
 }

@@ -23,17 +23,16 @@ import java.util.Comparator;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.netbeans.api.core.ide.ServicesTabNodeRegistration;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.util.NbBundle.Messages;
 import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.mule.tooling.netbeans.api.MuleSupport;
+import org.mule.tooling.netbeans.api.change.ChangeSource;
 import org.mule.tooling.netbeans.common.IconUtil;
-import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Node;
+import org.openide.util.lookup.Lookups;
 
 /**
  *
@@ -55,7 +54,7 @@ public class MuleRuntimeServicesNode extends AbstractNode {
     static final String NODE_NAME = "muleruntimes"; // NOI18N
 
     private MuleRuntimeServicesNode() {
-        super(Children.create(new MuleRuntimeNodesFactory(), true));
+        super(Children.create(new MuleRuntimeNodesFactory(MuleSupport.getRegistry()), true));
         setName(NODE_NAME);
         setDisplayName(Bundle.MuleRuntimeSupport_DisplayName());
         setIconBaseWithExtension(IconUtil.MULE_ICON);
@@ -83,7 +82,11 @@ public class MuleRuntimeServicesNode extends AbstractNode {
         }
     }
 
-    private static class MuleRuntimeNodesFactory extends ChildFactory.Detachable<MuleRuntime> implements ChangeListener {
+    private static class MuleRuntimeNodesFactory extends AbstractChildFactory<MuleRuntime> {
+
+        public MuleRuntimeNodesFactory(ChangeSource changeSource) {
+            super(Lookups.singleton(changeSource));
+        }
 
         @Override
         protected boolean createKeys(List<MuleRuntime> toPopulate) {
@@ -100,21 +103,6 @@ public class MuleRuntimeServicesNode extends AbstractNode {
         @Override
         protected Node createNodeForKey(MuleRuntime key) {
             return new SingleRuntimeNode(key);
-        }
-
-        @Override
-        protected void addNotify() {
-            MuleSupport.getRegistry().addChangeListener(this);
-        }
-
-        @Override
-        protected void removeNotify() {
-            MuleSupport.getRegistry().removeChangeListener(this);
-        }
-
-        @Override
-        public void stateChanged(ChangeEvent event) {
-            refresh(true);
         }
     }
 }
