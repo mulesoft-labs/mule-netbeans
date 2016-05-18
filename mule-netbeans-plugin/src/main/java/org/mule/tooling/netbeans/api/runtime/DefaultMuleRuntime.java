@@ -26,6 +26,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.mule.tooling.netbeans.api.Application;
@@ -48,7 +49,7 @@ import org.openide.filesystems.FileEvent;
  *
  * @author Facundo Lopez Kaufmann
  */
-public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRuntime {
+public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRuntime, RuntimeConstants {
 
     private static final Logger LOGGER = Logger.getLogger(DefaultMuleRuntime.class.getName());
     private static final Pattern MULE_BOOT_PATTERN = Pattern.compile("mule-module-(.*?)boot(.*?)\\.jar"); // NOI18N
@@ -119,9 +120,15 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
             throw new IllegalStateException("Invalid boot jar", e);
         }
         process = new MuleProcess(this, changeSupport);
-        apps = new ApplicationsInternalController(muleHome.resolve(APPS_SUBDIR).toFile(), changeSupport);
-        libs = new UserLibrariesInternalController(muleHome.resolve(LIB_USER_SUBDIR).toFile(), changeSupport);
-        domains = new DomainsInternalController(muleHome.resolve(DOMAINS_SUBDIR).toFile(), changeSupport);
+        File appsFolder = muleHome.resolve(APPS_SUBDIR).toFile();
+        File libsFolder = muleHome.resolve(LIB_USER_SUBDIR).toFile();
+        File domainsFolder = muleHome.resolve(DOMAINS_SUBDIR).toFile();
+        LOGGER.log(Level.INFO, "{0} apps folder: {1}", new Object[]{getName(), appsFolder});
+        LOGGER.log(Level.INFO, "{0} libs folder: {1}", new Object[]{getName(), libsFolder});
+        LOGGER.log(Level.INFO, "{0} domains folder: {1}", new Object[]{getName(), domainsFolder});
+        apps = new ApplicationsInternalController(appsFolder, changeSupport);
+        libs = new UserLibrariesInternalController(libsFolder, changeSupport);
+        domains = new DomainsInternalController(domainsFolder, changeSupport);
 
         addConfiguration(Configuration.TLS, muleHome.resolve("conf/tls-default.conf").toFile());
         addConfiguration(Configuration.WRAPPER, muleHome.resolve("conf/wrapper.conf").toFile());
@@ -167,8 +174,9 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
             apps.initialize();
             libs.initialize();
             process.initialize();
-            fireChange();
+            fireChange(ATTRIBUTE_REGISTERED, true);
             doRegistration = true;
+            LOGGER.log(Level.INFO, "{0} registered!", new Object[]{getName()});
         } finally {
             lock.unlock();
         }
@@ -184,7 +192,8 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
             apps.shutdown();
             libs.shutdown();
             process.shutdown();
-            fireChange();
+            fireChange(ATTRIBUTE_REGISTERED, false);
+            LOGGER.log(Level.INFO, "{0} unregistered!", new Object[]{getName()});
         } finally {
             lock.unlock();
         }

@@ -64,4 +64,9 @@ public class DirectoryDomain extends AbstractChangeSource implements Domain {
     public List<Configuration> getConfigurations() {
         return Collections.<Configuration>singletonList(new FileConfiguration(CONFIG_NAME, new File(path, CONFIG_NAME)));
     }
+
+    @Override
+    public String toString() {
+        return "DirectoryDomain{" + "name=" + getName() + '}';
+    }
 }

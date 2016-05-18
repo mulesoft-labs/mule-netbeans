@@ -60,7 +60,7 @@ public class ApplicationsNode extends AbstractNode {
         private MuleRuntime runtime;
 
         private ApplicationsChildFactory(MuleRuntime muleRuntime) {
-            super(Lookup.EMPTY);
+            super(Lookups.singleton(muleRuntime));
             this.runtime = muleRuntime;
         }
 

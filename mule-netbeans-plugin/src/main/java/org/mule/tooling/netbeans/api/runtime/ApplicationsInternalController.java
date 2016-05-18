@@ -43,7 +43,7 @@ public class ApplicationsInternalController extends AbstractInternalController<A
 
     @Override
     protected String getAttributeName() {
-        return APPLICATIONS;
+        return ATTRIBUTE_APPLICATIONS;
     }
 
     @Override

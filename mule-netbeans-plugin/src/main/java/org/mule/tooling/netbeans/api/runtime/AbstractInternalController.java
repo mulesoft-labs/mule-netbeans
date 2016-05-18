@@ -30,7 +30,7 @@ import org.openide.filesystems.FileUtil;
  *
  * @author Facundo Lopez Kaufmann
  */
-public abstract class AbstractInternalController<T extends Named> extends FileChangeAdapter implements InternalController {
+public abstract class AbstractInternalController<T extends Named> extends FileChangeAdapter implements InternalController, RuntimeConstants {
 
     private final Map<String, T> artefacts = new ConcurrentHashMap<String, T>();
     private final File targetDir;

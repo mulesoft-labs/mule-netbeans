@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import org.mule.tooling.netbeans.api.MuleRuntime;
@@ -46,6 +48,7 @@ import org.openide.util.lookup.ServiceProviders;
 })
 public class DefaultMuleRuntimeFactory extends AbstractChangeSource implements MuleRuntimeFactory, MuleRuntimeRegistry {
 
+    private static final Logger LOGGER = Logger.getLogger(DefaultMuleRuntimeFactory.class.getName());
     private static final String RUNTIME_AREA = "runtimes";
     private final Map<Path, MuleRuntime> registry = new HashMap<Path, MuleRuntime>();
     private final Lock lock = new ReentrantLock();

@@ -43,26 +43,31 @@ public class UserLibrariesInternalController extends AbstractInternalController<
 
     @Override
     protected String getAttributeName() {
-        return USERLIBS;
+        return ATTRIBUTE_USERLIBS;
     }
 
     @Override
     public void fileDataCreated(FileEvent fe) {
-        add(new File(fe.getFile().getPath()), true);
+        File file = new File(fe.getFile().getPath());
+        if (doAccept(file)) {
+            add(file, true);
+        }
     }
 
     @Override
     public void fileDeleted(FileEvent fe) {
-        if (FileHelper.isJar(fe.getFile().getName())) {
-            remove(fe.getFile().getName());
+        File file = new File(fe.getFile().getPath());
+        if (doAccept(file)) {
+            remove(file.getName());
         }
     }
 
     @Override
     public void fileRenamed(FileRenameEvent fe) {
-        if (FileHelper.isJar(fe.getFile().getName())) {
-            remove(fe.getName());
-            add(new File(fe.getFile().getPath()), true);
+        File file = new File(fe.getFile().getPath());
+        if (doAccept(file)) {
+            remove(file.getName());
+            add(file, true);
         }
     }
 }

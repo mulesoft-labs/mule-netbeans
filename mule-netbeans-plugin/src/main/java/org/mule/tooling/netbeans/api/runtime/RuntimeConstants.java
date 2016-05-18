@@ -15,31 +15,16 @@
  */
 package org.mule.tooling.netbeans.api.runtime;
 
-import java.io.File;
-import org.mule.tooling.netbeans.api.Library;
-
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public class JarLibrary implements Library {
-    private final File path;
-
-    public JarLibrary(File path) {
-        this.path = path;
-    }
+public interface RuntimeConstants {
     
-    @Override
-    public String getName() {
-        return path.getName();
-    }
-    
-    public File getFile() {
-        return path;
-    }
-
-    @Override
-    public String toString() {
-        return "JarLibrary{" + "name=" + getName() + '}';
-    }
+    public static final String ATTRIBUTE_REGISTERED = "registered";
+    public static final String ATTRIBUTE_STATUS = "status";
+    public static final String ATTRIBUTE_PROCESS = "process";
+    public static final String ATTRIBUTE_USERLIBS = "userlibs";
+    public static final String ATTRIBUTE_DOMAINS = "domains";
+    public static final String ATTRIBUTE_APPLICATIONS = "applications";
 }

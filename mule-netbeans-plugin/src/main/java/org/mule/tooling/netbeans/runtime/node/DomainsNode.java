@@ -67,7 +67,7 @@ public class DomainsNode extends AbstractNode {
         private MuleRuntime runtime;
 
         private DomainsChildFactory(MuleRuntime muleRuntime) {
-            super(Lookup.EMPTY);
+            super(Lookups.singleton(muleRuntime));
             this.runtime = muleRuntime;
         }
 

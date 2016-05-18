@@ -43,7 +43,7 @@ public class DomainsInternalController extends AbstractInternalController<Domain
 
     @Override
     protected String getAttributeName() {
-        return DOMAINS;
+        return ATTRIBUTE_DOMAINS;
     }
     
     @Override

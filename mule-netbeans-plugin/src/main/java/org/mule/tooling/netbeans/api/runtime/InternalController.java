@@ -20,10 +20,6 @@ package org.mule.tooling.netbeans.api.runtime;
  * @author Facundo Lopez Kaufmann
  */
 public interface InternalController {
-    public static final String PROCESS = "process";
-    public static final String USERLIBS = "userlibs";
-    public static final String DOMAINS = "domains";
-    public static final String APPLICATIONS = "applications";
 
     public void initialize();
 

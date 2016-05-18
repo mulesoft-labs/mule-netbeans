@@ -107,4 +107,9 @@ public class DirectoryApplication extends AbstractChangeSource implements Applic
     public List<Library> getLibraries() {
         return libs;
     }
+
+    @Override
+    public String toString() {
+        return "DirectoryApplication{" + "name=" + getName() + ", domain=" + getDomainName()+ '}';
+    }
 }

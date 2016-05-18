@@ -22,12 +22,27 @@ import java.util.prefs.Preferences;
  * 
  * @author Facundo Lopez Kaufmann
  */
-
 public interface Store {
-    
+    /**
+     * 
+     * @param areaName
+     * @param id
+     * @param forceCreation
+     * @return 
+     */
     public Preferences get(String areaName, String id, boolean forceCreation);
-
+    
+    /**
+     * 
+     * @param areaName
+     * @param id 
+     */
     public void remove(String areaName, String id);
-
+    
+    /**
+     * 
+     * @param areaName
+     * @return 
+     */
     public List<String> getIds(String areaName);
 }

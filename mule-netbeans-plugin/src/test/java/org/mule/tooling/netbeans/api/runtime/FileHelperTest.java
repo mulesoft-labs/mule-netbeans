@@ -15,31 +15,22 @@
  */
 package org.mule.tooling.netbeans.api.runtime;
 
-import java.io.File;
-import org.mule.tooling.netbeans.api.Library;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public class JarLibrary implements Library {
-    private final File path;
+public class FileHelperTest {
 
-    public JarLibrary(File path) {
-        this.path = path;
-    }
-    
-    @Override
-    public String getName() {
-        return path.getName();
-    }
-    
-    public File getFile() {
-        return path;
-    }
-
-    @Override
-    public String toString() {
-        return "JarLibrary{" + "name=" + getName() + '}';
+    /**
+     * Test of isJar method, of class FileHelper.
+     */
+    @Test
+    public void testIsJar() {
+        Assert.assertTrue(FileHelper.isJar("parapam.jar"));
+        Assert.assertFalse(FileHelper.isJar(".DS_Store"));
+        Assert.assertFalse(FileHelper.isJar("file"));
     }
 }

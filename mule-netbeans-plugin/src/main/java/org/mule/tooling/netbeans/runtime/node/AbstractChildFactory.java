@@ -15,6 +15,8 @@
  */
 package org.mule.tooling.netbeans.runtime.node;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.mule.tooling.netbeans.api.change.ChangeSource;
@@ -36,7 +38,7 @@ public abstract class AbstractChildFactory<T> extends ChildFactory.Detachable<T>
     @Override
     protected void addNotify() {
         ChangeSource changeSource = lookup.lookup(ChangeSource.class);
-        System.out.println(changeSource);
+        Logger.getLogger(getClass().getName()).log(Level.INFO, "Registering to change source {0}", new Object[]{changeSource});
         if(changeSource != null) {
             changeSource.addChangeListener(this);
         }
@@ -45,6 +47,7 @@ public abstract class AbstractChildFactory<T> extends ChildFactory.Detachable<T>
     @Override
     protected void removeNotify() {
         ChangeSource changeSource = lookup.lookup(ChangeSource.class);
+        Logger.getLogger(getClass().getName()).log(Level.INFO, "Unregistering from change source {0}", new Object[]{changeSource});
         if(changeSource != null) {
             changeSource.removeChangeListener(this);
         }

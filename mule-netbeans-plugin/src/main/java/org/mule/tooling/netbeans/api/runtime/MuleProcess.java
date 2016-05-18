@@ -30,6 +30,7 @@ import javax.swing.Icon;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.mule.tooling.netbeans.api.MuleRuntime;
+import org.mule.tooling.netbeans.api.RuntimeVersion;
 import org.mule.tooling.netbeans.api.Status;
 import org.mule.tooling.netbeans.api.change.AttributeChangeEvent;
 import org.mule.tooling.netbeans.api.change.ChangeSupport;
@@ -52,10 +53,9 @@ import org.openide.windows.InputOutput;
  *
  * @author Facundo Lopez Kaufmann
  */
-class MuleProcess extends FileChangeAdapter implements InternalController {
+class MuleProcess extends FileChangeAdapter implements InternalController, RuntimeConstants {
 
     private static final Logger LOGGER = Logger.getLogger(MuleProcess.class.getName());
-    private static final String ATTRIBUTE_STATUS = "status";
     private static final String BIN_SUBDIR = "bin";
     private static final RequestProcessor RP = new RequestProcessor("Mule Instance", 5); // NOI18N
     private final AtomicReference<Future<Integer>> processHolder = new AtomicReference<Future<Integer>>();
@@ -111,7 +111,7 @@ class MuleProcess extends FileChangeAdapter implements InternalController {
         }
         try {
             String pid = getPidFromFile();
-            if(pid == null) {
+            if (pid == null) {
                 return false;
             }
             boolean processRunning = RuntimeUtils.isProcessRunning(pid);
@@ -162,10 +162,12 @@ class MuleProcess extends FileChangeAdapter implements InternalController {
     private ExternalProcessBuilder startProcessBuilder(boolean debug) {
         //TODO: allow all the parameter to be configurable
         String muleHomeString = runtime.getMuleHome().toAbsolutePath().toString();
+        RuntimeVersion version = runtime.getVersion();
+        String muleApp = version.isEnterprise() ? "mule_ee" : "mule";
         ExternalProcessBuilder processBuilder = new ExternalProcessBuilder(wrapperExec.toAbsolutePath().toString())
                 .addArgument("--console")
-                .addEnvironmentVariable("MULE_APP_LONG", "Mule")
-                .addEnvironmentVariable("MULE_APP", "mule")
+                .addEnvironmentVariable("MULE_APP_LONG", version.getBranch())
+                .addEnvironmentVariable("MULE_APP", muleApp)
                 .addEnvironmentVariable("PWD", muleHomeString + File.separator + "bin")
                 .addEnvironmentVariable("MULE_HOME", muleHomeString)
                 .addEnvironmentVariable("MULE_BASE", muleHomeString)
@@ -277,9 +279,9 @@ class MuleProcess extends FileChangeAdapter implements InternalController {
     public void fileRenamed(FileRenameEvent fe) {
         cs.fireChange();
     }
-    
+
     protected InputOutput createInputOutput(final MuleRuntime runtime) {
-        Action[] actions = new Action[] {
+        Action[] actions = new Action[]{
             new StartAction(runtime),
             new DebugAction(runtime),
             new StopAction(runtime)
@@ -287,8 +289,9 @@ class MuleProcess extends FileChangeAdapter implements InternalController {
         InputOutput io = IOProvider.getDefault().getIO(runtime.getName(), actions);
         return io;
     }
-    
+
     private static abstract class AbstractRuntimeAction extends AbstractAction implements ChangeListener {
+
         protected final MuleRuntime runtime;
 
         public AbstractRuntimeAction(MuleRuntime runtime, String name, Icon icon) {
@@ -299,15 +302,18 @@ class MuleProcess extends FileChangeAdapter implements InternalController {
 
         @Override
         public void stateChanged(ChangeEvent e) {
-            System.out.println(this + " " + e);
-            if(!runtime.isRegistered()) {
-                runtime.removeChangeListener(this);
+            LOGGER.log(Level.INFO, "{0} received the event {1} (registered={2})", new Object[]{this, e, runtime.isRegistered()});
+            if (!(e instanceof AttributeChangeEvent)) {
+                return;
             }
-            if (e instanceof AttributeChangeEvent && ((AttributeChangeEvent) e).getAttributeName().equals("status")) {
+            AttributeChangeEvent ace = (AttributeChangeEvent) e;
+            if (ace.getAttributeName().equals(ATTRIBUTE_STATUS)) {
                 updateEnabled();
+            } else if (ace.getAttributeName().equals(ATTRIBUTE_REGISTERED) && Boolean.FALSE.equals(ace.getValue())) {
+                runtime.removeChangeListener(this);                
             }
         }
-        
+
         protected void updateEnabled() {
             Mutex.EVENT.readAccess(new Runnable() {
                 @Override
@@ -317,7 +323,7 @@ class MuleProcess extends FileChangeAdapter implements InternalController {
             });
         }
     }
-    
+
     @NbBundle.Messages({
         "NBPSupport_StartAction_name=Start"
     })
@@ -337,7 +343,7 @@ class MuleProcess extends FileChangeAdapter implements InternalController {
             runtime.start(false);
         }
     }
-    
+
     @NbBundle.Messages({
         "NBPSupport_DebugAction_name=Start in debug mode"
     })
@@ -357,7 +363,7 @@ class MuleProcess extends FileChangeAdapter implements InternalController {
             runtime.start(true);
         }
     }
-    
+
     @NbBundle.Messages({
         "NBPSupport_StopAction_name=Stop"
     })

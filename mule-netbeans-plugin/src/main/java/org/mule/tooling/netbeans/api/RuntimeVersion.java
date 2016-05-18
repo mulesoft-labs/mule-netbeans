@@ -15,12 +15,17 @@
  */
 package org.mule.tooling.netbeans.api;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
 public class RuntimeVersion {
 
+    private static final Set<String> ENTERPRISE = new HashSet<String>(Arrays.asList(MuleRuntime.BRANCH_API_GW, MuleRuntime.BRANCH_MULE_EE));
     private final String branch;
     private final String number;
 
@@ -35,6 +40,10 @@ public class RuntimeVersion {
 
     public String getNumber() {
         return number;
+    }
+
+    public boolean isEnterprise() {
+        return ENTERPRISE.contains(branch);
     }
 
     @Override
