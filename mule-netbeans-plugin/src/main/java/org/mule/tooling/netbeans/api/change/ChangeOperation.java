@@ -13,20 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.api;
-
-import java.io.File;
+package org.mule.tooling.netbeans.api.change;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface Configuration extends Named {
-
-    public static final String TLS = "tls";
-    public static final String LOGS = "logs";
-    public static final String WRAPPER = "wrapper";
-    public static final String AGENT = "agent";
-
-    public File getFile();
+public enum ChangeOperation {
+    CREATE,
+    UPDATE,
+    DELETE;
 }

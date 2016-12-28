@@ -15,18 +15,13 @@
  */
 package org.mule.tooling.netbeans.api;
 
-import java.io.File;
-
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface Configuration extends Named {
+public interface Lifecycle {
 
-    public static final String TLS = "tls";
-    public static final String LOGS = "logs";
-    public static final String WRAPPER = "wrapper";
-    public static final String AGENT = "agent";
+    public void initialize();
 
-    public File getFile();
+    public void shutdown();
 }

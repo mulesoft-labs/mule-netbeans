@@ -47,7 +47,8 @@ import org.openide.util.lookup.Lookups;
 @Messages({
     "MuleRuntimeSupport_DisplayName=Mule Runtimes",
     "MuleRuntimeSupport_ShortDescription=Mule Runtime Support",    
-    "MuleRuntimeSupport_AddRuntimeActionTitle=Add Runtime"
+    "MuleRuntimeSupport_AddRuntimeActionTitle=Add Runtime",
+    "MuleRuntimeSupport_RefreshRuntimeActionTitle=Refresh"
 })
 public class MuleRuntimeServicesNode extends AbstractNode {
 
@@ -63,11 +64,16 @@ public class MuleRuntimeServicesNode extends AbstractNode {
     @Override
     public Action[] getActions(boolean context) {
         return new Action[]{
-            new AddRuntimeAction()
+            new AddRuntimeAction(),
+            null,
+            new RefreshRuntimeAction()
         };
     }
+    
+    private void refresh() {
+    }
 
-    private static class AddRuntimeAction extends AbstractAction {
+    private class AddRuntimeAction extends AbstractAction {
 
         public AddRuntimeAction() {
             super(Bundle.MuleRuntimeSupport_AddRuntimeActionTitle());
@@ -79,6 +85,17 @@ public class MuleRuntimeServicesNode extends AbstractNode {
             if(muleHome != null) {
                 MuleSupport.getMuleRuntime(muleHome).register();
             }
+        }
+    }
+
+    private class RefreshRuntimeAction extends AbstractAction {
+
+        public RefreshRuntimeAction() {
+            super(Bundle.MuleRuntimeSupport_RefreshRuntimeActionTitle());
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
         }
     }
 

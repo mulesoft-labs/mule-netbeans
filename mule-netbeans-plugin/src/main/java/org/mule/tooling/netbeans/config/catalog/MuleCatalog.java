@@ -22,7 +22,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.mule.tooling.netbeans.xml.UserCatalog;
 import org.netbeans.modules.xml.catalog.spi.CatalogDescriptor2;
 import org.netbeans.modules.xml.catalog.spi.CatalogListener;
 import org.netbeans.modules.xml.catalog.spi.CatalogReader;
@@ -35,7 +34,7 @@ import org.xml.sax.SAXException;
  *
  * @author Facundo Lopez Kaufmann
  */
-@UserCatalog
+//@UserCatalog
 @Messages({
     "MuleCatalog_name=Mule Catalog\n",
     "MuleCatalog_description=Catalog for Mule XML schemas"
@@ -57,6 +56,9 @@ public class MuleCatalog implements CatalogReader, CatalogDescriptor2, EntityRes
         schemas.add(new SchemaInfo("mule-domain-3.7.3.xsd", MULE_SCHEMAS_PACKAGE, "http://www.mulesoft.org/schema/mule/domain"));
         schemas.add(new SchemaInfo("mule-domain-ee-3.7.3.xsd", MULE_SCHEMAS_PACKAGE, "http://www.mulesoft.org/schema/mule/ee/domain"));
         schemas.add(new SchemaInfo("mule-schemadoc-3.7.3.xsd", MULE_SCHEMAS_PACKAGE, "http://www.mulesoft.org/schema/mule/schemadoc"));
+        schemas.add(new SchemaInfo("mule-http-3.7.3.xsd", MULE_SCHEMAS_PACKAGE, "http://www.mulesoft.org/schema/mule/http"));
+        schemas.add(new SchemaInfo("mule-https-3.7.3.xsd", MULE_SCHEMAS_PACKAGE, "http://www.mulesoft.org/schema/mule/https"));
+        schemas.add(new SchemaInfo("mule-db-3.7.3.xsd", MULE_SCHEMAS_PACKAGE, "http://www.mulesoft.org/schema/mule/db"));
         schemas.add(new SchemaInfo("spring-beans-3.2.xsd", MULE_SCHEMAS_PACKAGE, "http://www.springframework.org/schema/beans"));
         schemas.add(new SchemaInfo("spring-context-3.2.xsd", MULE_SCHEMAS_PACKAGE, "http://www.springframework.org/schema/context"));
         schemas.add(new SchemaInfo("spring-security-3.1.xsd", MULE_SCHEMAS_PACKAGE, "http://www.springframework.org/schema/security"));

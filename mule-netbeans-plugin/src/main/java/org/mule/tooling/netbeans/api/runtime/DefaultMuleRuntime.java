@@ -132,10 +132,13 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
 
         addConfiguration(Configuration.TLS, muleHome.resolve("conf/tls-default.conf").toFile());
         addConfiguration(Configuration.WRAPPER, muleHome.resolve("conf/wrapper.conf").toFile());
+        addConfiguration(Configuration.AGENT, muleHome.resolve("conf/mule-agent.yml").toFile());
         String[] parts = version.getNumber().split("\\.");
         int major = Integer.valueOf(parts[0]);
         int minor = Integer.valueOf(parts[1]);
-        if ((version.getBranch().equals(BRANCH_API_GW) && major == 1) || (!version.getBranch().equals(BRANCH_API_GW) && major == 3 && minor < 6)) {
+        // we check if this version uses log4j
+        if ((version.getBranch().equals(BRANCH_API_GW) && major == 1) 
+                || (!version.getBranch().equals(BRANCH_API_GW) && major == 3 && minor < 6)) {
             addConfiguration(Configuration.LOGS, muleHome.resolve("conf/log4j.properties").toFile());
         } else {
             addConfiguration(Configuration.LOGS, muleHome.resolve("conf/log4j2.xml").toFile());

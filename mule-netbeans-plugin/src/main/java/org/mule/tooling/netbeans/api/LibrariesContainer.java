@@ -16,7 +16,6 @@
 package org.mule.tooling.netbeans.api;
 
 import java.util.List;
-import org.mule.tooling.netbeans.api.change.ChangeSource;
 
 /**
  *

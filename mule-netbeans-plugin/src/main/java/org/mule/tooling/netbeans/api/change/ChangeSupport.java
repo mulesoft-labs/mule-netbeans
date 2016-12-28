@@ -53,8 +53,12 @@ public class ChangeSupport {
         return !listeners.isEmpty();
     }
 
-    public void fireChange(String changeName, Object value) {
-        fireChange(new AttributeChangeEvent(source, changeName, value));
+    public void fireChange(String attributeName, Object value) {
+        fireChange(attributeName, ChangeOperation.UPDATE, value);
+    }
+
+    public void fireChange(String attributeName, ChangeOperation operation, Object value) {
+        fireChange(new AttributeChangeEvent(source, attributeName, operation, value));
     }
 
     public void fireChange() {

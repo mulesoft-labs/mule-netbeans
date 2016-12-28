@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.mule.tooling.netbeans.api.Lifecycle;
 import org.mule.tooling.netbeans.api.Named;
 import org.mule.tooling.netbeans.api.change.ChangeSupport;
 import org.openide.filesystems.FileChangeAdapter;
@@ -32,7 +33,7 @@ import org.openide.filesystems.FileUtil;
  */
 public abstract class AbstractInternalController<T extends Named> extends FileChangeAdapter implements InternalController, RuntimeConstants {
 
-    private final Map<String, T> artefacts = new ConcurrentHashMap<String, T>();
+    private final Map<String, T> artifacts = new ConcurrentHashMap<String, T>();
     private final File targetDir;
     private final ChangeSupport cs;
 
@@ -42,7 +43,7 @@ public abstract class AbstractInternalController<T extends Named> extends FileCh
     }
 
     public List<T> getArtefacts() {
-        return new ArrayList<T>(artefacts.values());
+        return new ArrayList<T>(artifacts.values());
     }
 
     @Override
@@ -69,18 +70,24 @@ public abstract class AbstractInternalController<T extends Named> extends FileCh
     protected abstract boolean doAccept(File pathname);
 
     protected void add(File file, boolean notify) {
-        T artefact = doCreate(file);
-        artefacts.put(artefact.getName(), artefact);
+        T artifact = doCreate(file);
+        artifacts.put(artifact.getName(), artifact);
         if (notify) {
-            cs.fireChange(getAttributeName(), artefact);
+            cs.fireChange(getAttributeName(), artifact);
+        }
+        if(artifact instanceof Lifecycle) {
+            ((Lifecycle) artifact).initialize();
         }
     }
 
     protected abstract T doCreate(File file);
 
     protected void remove(String name) {
-        T artefact = artefacts.remove(name);
-        cs.fireChange(getAttributeName(), artefact);
+        T artifact = artifacts.remove(name);
+        cs.fireChange(getAttributeName(), artifact);
+        if(artifact instanceof Lifecycle) {
+            ((Lifecycle) artifact).shutdown();
+        }
     }
 
     protected abstract String getAttributeName();
@@ -88,6 +95,6 @@ public abstract class AbstractInternalController<T extends Named> extends FileCh
     @Override
     public void shutdown() {
         FileUtil.removeFileChangeListener(this, targetDir);
-        artefacts.clear();
+        artifacts.clear();
     }
 }

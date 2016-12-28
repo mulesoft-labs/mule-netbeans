@@ -15,10 +15,12 @@
  */
 package org.mule.tooling.netbeans.api;
 
+import org.mule.tooling.netbeans.api.change.ChangeSource;
+
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface Domain extends Named, LibrariesContainer, ConfigurationsContainer {
+public interface Domain extends Named, ChangeSource, LibrariesContainer, ConfigurationsContainer {
 
 }

@@ -20,6 +20,10 @@ import java.io.IOException;
 import org.mule.tooling.netbeans.common.IconUtil;
 import org.netbeans.core.spi.multiview.MultiViewElement;
 import org.netbeans.core.spi.multiview.text.MultiViewEditorElement;
+import org.netbeans.spi.queries.FileEncodingQueryImplementation;
+import org.netbeans.spi.xml.cookies.CheckXMLSupport;
+import org.netbeans.spi.xml.cookies.DataObjectAdapters;
+import org.netbeans.spi.xml.cookies.ValidateXMLSupport;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -29,9 +33,12 @@ import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectExistsException;
 import org.openide.loaders.MultiDataObject;
 import org.openide.loaders.MultiFileLoader;
+import org.openide.nodes.CookieSet;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 import org.openide.windows.TopComponent;
+import org.xml.sax.InputSource;
+import org.netbeans.modules.xml.api.XmlFileEncodingQueryImpl;
 
 @Messages({
     "LBL_MuleXmlConfig_LOADER=Files of MuleXmlConfig"
@@ -105,6 +112,11 @@ public class MuleXmlConfigDataObject extends MultiDataObject {
 
     public MuleXmlConfigDataObject(FileObject pf, MultiFileLoader loader) throws DataObjectExistsException, IOException {
         super(pf, loader);
+        CookieSet cookies = getCookieSet();
+        InputSource in = DataObjectAdapters.inputSource(this);
+        cookies.add(new CheckXMLSupport(in));
+        cookies.add(new ValidateXMLSupport(in));
+        cookies.assign(FileEncodingQueryImplementation.class, XmlFileEncodingQueryImpl.singleton());
         registerEditor(MuleConstants.MULE_XML_CONFIG_MIME_TYPE, false);
     }
 

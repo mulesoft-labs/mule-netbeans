@@ -15,13 +15,11 @@
  */
 package org.mule.tooling.netbeans.api.runtime;
 
+import org.mule.tooling.netbeans.api.Lifecycle;
+
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public interface InternalController {
-
-    public void initialize();
-
-    public void shutdown();
+public interface InternalController extends Lifecycle {
 }
