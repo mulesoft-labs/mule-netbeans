@@ -13,14 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.api.change;
+package org.mule.tooling.netbeans.api;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public enum ChangeOperation {
-    CREATE,
-    UPDATE,
-    DELETE;
+public interface RuntimeProcess {
+
+    public Status getStatus();
+
+    public boolean isRunning();
+
+    public boolean canStart();
+
+    public void start(boolean debug);
+
+    public boolean canStop();
+
+    public void stop(boolean forced);
+    
+    public void viewLogs();
 }

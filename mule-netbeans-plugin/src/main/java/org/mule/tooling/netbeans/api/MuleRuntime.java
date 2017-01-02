@@ -40,20 +40,8 @@ public interface MuleRuntime extends ChangeSource, LibrariesContainer, Configura
     public List<Application> getApplications();
     
     public List<Domain> getDomains();
-
-    public Status getStatus();
-
-    public boolean isRunning();
-
-    public boolean canStart();
-
-    public void start(boolean debug);
-
-    public boolean canStop();
-
-    public void stop(boolean forced);
     
-    public void viewLogs();
+    public RuntimeProcess getRuntimeProcess();
     
     /**
      * Returns if the mule runtime is registered in the

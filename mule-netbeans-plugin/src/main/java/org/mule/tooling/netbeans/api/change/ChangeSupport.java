@@ -29,11 +29,6 @@ import org.openide.util.Exceptions;
 public class ChangeSupport {
 
     protected final List<ChangeListener> listeners = new CopyOnWriteArrayList<ChangeListener>();
-    protected final Object source;
-
-    public ChangeSupport(Object source) {
-        this.source = source;
-    }
 
     public void addChangeListener(ChangeListener changeListener) {
         if (changeListener == null) {
@@ -53,15 +48,11 @@ public class ChangeSupport {
         return !listeners.isEmpty();
     }
 
-    public void fireChange(String attributeName, Object value) {
-        fireChange(attributeName, ChangeOperation.UPDATE, value);
+    public void fireChange(Object source, String attributeName, Object value) {
+        fireChange(new AttributeChangeEvent(source, attributeName, value));
     }
 
-    public void fireChange(String attributeName, ChangeOperation operation, Object value) {
-        fireChange(new AttributeChangeEvent(source, attributeName, operation, value));
-    }
-
-    public void fireChange() {
+    public void fireChange(Object source) {
         fireChange(new ChangeEvent(source));
     }
 

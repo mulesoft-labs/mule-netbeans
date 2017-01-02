@@ -30,7 +30,7 @@ import org.mule.tooling.netbeans.api.change.ChangeSupport;
  * @author Facundo Lopez Kaufmann
  */
 public class AbstractDeployedArtifact implements Named, ChangeSource, LibrariesContainer, ConfigurationsContainer {
-    private ChangeSupport changeSource = new ChangeSupport(this);
+    private ChangeSupport changeSource = new ChangeSupport();
 
     @Override
     public String getName() {

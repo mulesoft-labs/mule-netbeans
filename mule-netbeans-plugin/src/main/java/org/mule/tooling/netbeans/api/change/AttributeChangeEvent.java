@@ -23,23 +23,17 @@ import javax.swing.event.ChangeEvent;
  */
 public class AttributeChangeEvent extends ChangeEvent {
 
-    private ChangeOperation operation;
-    private String attributeName;
-    private Object value;
+    private final String attributeName;
+    private final Object value;
 
-    public AttributeChangeEvent(Object source, String attributeName, ChangeOperation operation, Object value) {
+    public AttributeChangeEvent(Object source, String attributeName, Object value) {
         super(source);
         this.attributeName = attributeName;
-        this.operation = operation;
         this.value = value;
     }
 
     public String getAttributeName() {
         return attributeName;
-    }
-
-    public ChangeOperation getChangeOperation() {
-        return operation;
     }
 
     public Object getValue() {

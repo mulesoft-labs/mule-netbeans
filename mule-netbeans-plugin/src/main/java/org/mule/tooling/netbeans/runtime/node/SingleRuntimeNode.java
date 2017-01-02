@@ -56,7 +56,7 @@ public class SingleRuntimeNode extends AbstractNode implements ChangeListener {
 
     @Override
     public Image getIcon(int type) {
-        return IconUtil.getMuleServerIcon(getMuleRuntime().getStatus(), getCookieSet().getCookie(RuntimeCookie.class).isDebugging());
+        return IconUtil.getMuleServerIcon(getMuleRuntime().getRuntimeProcess().getStatus(), getCookieSet().getCookie(RuntimeCookie.class).isDebugging());
     }
 
     @Override
@@ -86,7 +86,7 @@ public class SingleRuntimeNode extends AbstractNode implements ChangeListener {
         buffer.append(Bundle.SingleRuntimeNode_shortDescription_name(muleRuntime.getName()));
         buffer.append(Bundle.SingleRuntimeNode_shortDescription_version(muleRuntime.getVersion()));
         buffer.append(Bundle.SingleRuntimeNode_shortDescription_muleHome(muleRuntime.getMuleHome()));
-        buffer.append(Bundle.SingleRuntimeNode_shortDescription_status(muleRuntime.getStatus()));
+        buffer.append(Bundle.SingleRuntimeNode_shortDescription_status(muleRuntime.getRuntimeProcess().getStatus()));
         buffer.append("</html>");//NOI18N
         return buffer.toString();
     }
@@ -111,7 +111,9 @@ public class SingleRuntimeNode extends AbstractNode implements ChangeListener {
             null,
             SystemAction.get(TerminateRuntimeAction.class),
             null,
-            DeleteAction.get(DeleteAction.class),};
+            SystemAction.get(TerminateRuntimeAction.class),
+            null,
+            DeleteAction.get(DeleteAction.class)};
     }
 
     //--- ChildFactory ---

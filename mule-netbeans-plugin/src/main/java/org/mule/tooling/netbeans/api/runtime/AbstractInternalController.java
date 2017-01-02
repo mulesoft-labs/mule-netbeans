@@ -73,7 +73,7 @@ public abstract class AbstractInternalController<T extends Named> extends FileCh
         T artifact = doCreate(file);
         artifacts.put(artifact.getName(), artifact);
         if (notify) {
-            cs.fireChange(getAttributeName(), artifact);
+            cs.fireChange(this, getAttributeName(), artifact);
         }
         if(artifact instanceof Lifecycle) {
             ((Lifecycle) artifact).initialize();
@@ -84,7 +84,7 @@ public abstract class AbstractInternalController<T extends Named> extends FileCh
 
     protected void remove(String name) {
         T artifact = artifacts.remove(name);
-        cs.fireChange(getAttributeName(), artifact);
+        cs.fireChange(this, getAttributeName(), artifact);
         if(artifact instanceof Lifecycle) {
             ((Lifecycle) artifact).shutdown();
         }

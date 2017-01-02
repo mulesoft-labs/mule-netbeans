@@ -26,7 +26,7 @@ public abstract class AbstractChangeSource implements ChangeSource {
     protected ChangeSupport changeSupport;
 
     protected AbstractChangeSource() {
-        this.changeSupport = new ChangeSupport(this);
+        this.changeSupport = new ChangeSupport();
     }
 
     protected AbstractChangeSource(ChangeSupport changeSupport) {
@@ -44,10 +44,10 @@ public abstract class AbstractChangeSource implements ChangeSource {
     }
     
     protected void fireChange(String changeName, Object value) {
-        changeSupport.fireChange(changeName, value);
+        changeSupport.fireChange(this, changeName, value);
     }
     
     protected void fireChange() {
-        changeSupport.fireChange();
+        changeSupport.fireChange(this);
     }
 }

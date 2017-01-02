@@ -35,7 +35,6 @@ import org.mule.tooling.netbeans.api.Domain;
 import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.mule.tooling.netbeans.api.MuleRuntimeRegistry;
 import org.mule.tooling.netbeans.api.RuntimeVersion;
-import org.mule.tooling.netbeans.api.Status;
 import org.openide.util.Lookup;
 import org.mule.tooling.netbeans.api.IDGenerationStrategy;
 import org.mule.tooling.netbeans.api.Library;
@@ -44,6 +43,7 @@ import static org.mule.tooling.netbeans.api.MuleRuntime.BRANCH_MULE;
 import static org.mule.tooling.netbeans.api.MuleRuntime.BRANCH_MULE_EE;
 import org.mule.tooling.netbeans.api.change.AbstractChangeSource;
 import org.openide.filesystems.FileEvent;
+import org.mule.tooling.netbeans.api.RuntimeProcess;
 
 /**
  *
@@ -69,9 +69,8 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
     private UserLibrariesInternalController libs;
     private List<Configuration> configurations = new ArrayList<Configuration>();
     private String id;
-    private JarFile bootJar;
     private RuntimeVersion version;
-    private MuleProcess process;
+    private LocalRuntimeProcess process;
     private boolean doRegistration = true;
 
     public DefaultMuleRuntime(MuleRuntimeRegistry registry, Path muleHome) {
@@ -110,7 +109,7 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
             throw new IllegalStateException("Could not locate boot jar");
         }
         try {
-            bootJar = new JarFile(children[0]);
+            JarFile bootJar = new JarFile(children[0]);
             Manifest mf = bootJar.getManifest();
             String vendorId = mf.getMainAttributes().getValue(MF_IMPLEMENTATION_VENDOR_ID);
             String branch = vendorId.contains("muleesb") ? BRANCH_MULE_EE : (vendorId.contains("anypoint") ? BRANCH_API_GW : BRANCH_MULE);
@@ -119,7 +118,7 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
         } catch (Exception e) {
             throw new IllegalStateException("Invalid boot jar", e);
         }
-        process = new MuleProcess(this, changeSupport);
+        process = new LocalRuntimeProcess(this, changeSupport);
         File appsFolder = muleHome.resolve(APPS_SUBDIR).toFile();
         File libsFolder = muleHome.resolve(LIB_USER_SUBDIR).toFile();
         File domainsFolder = muleHome.resolve(DOMAINS_SUBDIR).toFile();
@@ -202,40 +201,9 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
         }
     }
 
-    //---Instance handling methods
     @Override
-    public Status getStatus() {
-        return process.getStatus();
-    }
-
-    @Override
-    public boolean isRunning() {
-        return process.isRunning();
-    }
-
-    @Override
-    public boolean canStart() {
-        return process.canStart();
-    }
-
-    @Override
-    public void start(boolean debug) {
-        process.start(debug);
-    }
-
-    @Override
-    public boolean canStop() {
-        return process.canStop();
-    }
-
-    @Override
-    public void stop(final boolean forced) {
-        process.stop(forced);
-    }
-
-    @Override
-    public void viewLogs() {
-        process.viewLogs();
+    public RuntimeProcess getRuntimeProcess() {
+        return process;
     }
 
     //---MuleRuntime implementation
@@ -281,6 +249,6 @@ public class DefaultMuleRuntime extends AbstractChangeSource implements MuleRunt
 
     @Override
     public String toString() {
-        return "DefaultMuleRuntime[name=" + getName() + ", status=" + getStatus() + ']';
+        return "DefaultMuleRuntime[name=" + getName() + ", status=" + getRuntimeProcess().getStatus() + ']';
     }
 }

@@ -15,7 +15,6 @@
  */
 package org.mule.tooling.netbeans.runtime.node;
 
-import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle.Messages;
@@ -36,7 +35,7 @@ public class ViewRuntimeLogsAction extends NodeAction {
     @Override
     protected void performAction(Node[] activatedNodes) {
         for (Node node : activatedNodes) {
-            node.getCookie(RuntimeCookie.class).getRuntime().viewLogs();
+            node.getLookup().lookup(RuntimeCookie.class).getRuntime().getRuntimeProcess().viewLogs();
         }
     }
 

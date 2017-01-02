@@ -17,6 +17,7 @@ package org.mule.tooling.netbeans.runtime.node;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.mule.tooling.netbeans.api.MuleRuntime;
+import org.mule.tooling.netbeans.api.RuntimeProcess;
 import org.openide.nodes.Node;
 
 /**
@@ -37,8 +38,28 @@ public class RuntimeCookie implements Node.Cookie {
     }
     
     public void start(boolean debug) {
-        this.runtime.start(debug);
+        getRuntimeProcess().start(debug);
         setDebbuging(debug);
+    }
+
+    private RuntimeProcess getRuntimeProcess() {
+        return runtime.getRuntimeProcess();
+    }
+    
+    public boolean canStart() {
+        return getRuntimeProcess().canStart();
+    }
+    
+    public void stop(boolean forced) {
+        getRuntimeProcess().stop(forced);
+    }
+    
+    public boolean canStop() {
+        return getRuntimeProcess().canStop();
+    }
+    
+    public boolean isRunning() {
+        return getRuntimeProcess().isRunning();
     }
     
     public boolean isDebugging() {

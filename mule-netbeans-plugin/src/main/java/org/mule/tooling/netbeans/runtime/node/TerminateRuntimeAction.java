@@ -15,7 +15,6 @@
  */
 package org.mule.tooling.netbeans.runtime.node;
 
-import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle.Messages;
@@ -36,20 +35,18 @@ public class TerminateRuntimeAction extends NodeAction {
     @Override
     protected void performAction(Node[] activatedNodes) {
         for (Node node : activatedNodes) {
-            MuleRuntime runtime = node.getCookie(RuntimeCookie.class).getRuntime();
-            runtime.stop(true);
+            node.getLookup().lookup(RuntimeCookie.class).stop(true);
         }
     }
 
     @Override
     protected boolean enable(Node[] activatedNodes) {
         for (Node node : activatedNodes) {
-            RuntimeCookie cookie = node.getCookie(RuntimeCookie.class);
+            RuntimeCookie cookie = node.getLookup().lookup(RuntimeCookie.class);
             if(cookie == null) {
                 return false;
             }
-            MuleRuntime runtime = cookie.getRuntime();
-            if (!runtime.isRunning() || !runtime.canStop()) {
+            if (!cookie.isRunning() || !cookie.canStop()) {
                 return false;
             }
         }

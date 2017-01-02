@@ -15,7 +15,6 @@
  */
 package org.mule.tooling.netbeans.runtime.node;
 
-import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle.Messages;
@@ -49,8 +48,7 @@ public class StartRuntimeAction extends NodeAction {
             if(cookie == null) {
                 return false;
             }
-            MuleRuntime runtime = cookie.getRuntime();
-            if (!runtime.canStart()) {
+            if (!cookie.canStart()) {
                 return false;
             }
         }

@@ -48,25 +48,27 @@ import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 import org.openide.windows.IOProvider;
 import org.openide.windows.InputOutput;
+import org.mule.tooling.netbeans.api.RuntimeProcess;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-class MuleProcess extends FileChangeAdapter implements InternalController, RuntimeConstants {
+public class LocalRuntimeProcess implements InternalController, RuntimeConstants, RuntimeProcess {
 
-    private static final Logger LOGGER = Logger.getLogger(MuleProcess.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(LocalRuntimeProcess.class.getName());
     private static final String BIN_SUBDIR = "bin";
     private static final RequestProcessor RP = new RequestProcessor("Mule Instance", 5); // NOI18N
-    private final AtomicReference<Future<Integer>> processHolder = new AtomicReference<Future<Integer>>();
+    private final AtomicReference<Future<Integer>> processHolder = new AtomicReference<>();
     private final Path wrapperExec;
     private final DefaultMuleRuntime runtime;
     private final ChangeSupport cs;
     private InputOutput io;
     private Status status = Status.DOWN;
     private Path pidFilePath;
+    private FileChangeAdapter fileChangeAdapter;
 
-    MuleProcess(DefaultMuleRuntime runtime, ChangeSupport changeSupport) {
+    LocalRuntimeProcess(DefaultMuleRuntime runtime, ChangeSupport changeSupport) {
         this.runtime = runtime;
         this.cs = changeSupport;
         this.wrapperExec = RuntimeUtils.detectWrapperExecPath(runtime.getMuleHome());
@@ -82,10 +84,11 @@ class MuleProcess extends FileChangeAdapter implements InternalController, Runti
         if (status.equals(old)) {
             return;
         }
-        cs.fireChange(ATTRIBUTE_STATUS, status);
+        cs.fireChange(this, ATTRIBUTE_STATUS, status);
         LOGGER.log(Level.INFO, "updated status: {0}", this);
     }
 
+    @Override
     public Status getStatus() {
         return status;
     }
@@ -93,18 +96,40 @@ class MuleProcess extends FileChangeAdapter implements InternalController, Runti
     @Override
     public void initialize() {
         pidFilePath = runtime.getMuleHome().resolve(BIN_SUBDIR + File.separator + RuntimeUtils.pidFileForVersion(runtime.getVersion()));
-        FileUtil.addFileChangeListener(this, pidFilePath.toFile());
+        fileChangeAdapter = new FileChangeAdapter() {
+            @Override
+            public void fileDataCreated(FileEvent fe) {
+                cs.fireChange(LocalRuntimeProcess.this);
+            }
+
+            @Override
+            public void fileChanged(FileEvent fe) {
+                cs.fireChange(LocalRuntimeProcess.this);
+            }
+
+            @Override
+            public void fileDeleted(FileEvent fe) {
+                cs.fireChange(LocalRuntimeProcess.this);
+            }
+
+            @Override
+            public void fileRenamed(FileRenameEvent fe) {
+                cs.fireChange(LocalRuntimeProcess.this);
+            }
+        };
+        FileUtil.addFileChangeListener(fileChangeAdapter, pidFilePath.toFile());
         io = createInputOutput(runtime);
         io.closeInputOutput();
     }
 
     @Override
     public void shutdown() {
-        FileUtil.removeFileChangeListener(this, pidFilePath.toFile());
+        FileUtil.removeFileChangeListener(fileChangeAdapter, pidFilePath.toFile());
         io.closeInputOutput();
         io = null;
     }
 
+    @Override
     public boolean isRunning() {
         if (!Files.exists(getPidFilePath())) {
             return false;
@@ -125,10 +150,12 @@ class MuleProcess extends FileChangeAdapter implements InternalController, Runti
         }
     }
 
+    @Override
     public boolean canStart() {
         return !isRunning() && wrapperExec != null;
     }
 
+    @Override
     public void start(final boolean debug) {
         if (processHolder.get() != null) {
             throw new IllegalStateException("Instance already running");
@@ -174,7 +201,6 @@ class MuleProcess extends FileChangeAdapter implements InternalController, Runti
                 .addEnvironmentVariable("JAVA_TOOL_OPTIONS", debug ? "-agentlib:jdwp=transport=dt_socket,address=5005,server=y,suspend=n" : "")
                 .workingDirectory(new File(muleHomeString, "/bin"));
         processBuilder = processBuilder.addArgument(muleHomeString + File.separator + "conf" + File.separator + "wrapper.conf");
-//        processBuilder = processBuilder.addArgument("wrapper.console.format=PM");
         processBuilder = processBuilder.addArgument("wrapper.console.format=M");
         processBuilder = processBuilder.addArgument("wrapper.console.flush=TRUE");
         processBuilder = processBuilder.addArgument("wrapper.syslog.ident=mule");
@@ -197,10 +223,12 @@ class MuleProcess extends FileChangeAdapter implements InternalController, Runti
         }
     }
 
+    @Override
     public boolean canStop() {
         return isRunning() && processHolder.get() != null;
     }
 
+    @Override
     public void stop(final boolean forced) {
         if (processHolder.get() == null) {
             LOGGER.info("Instance not running");
@@ -230,6 +258,7 @@ class MuleProcess extends FileChangeAdapter implements InternalController, Runti
         });
     }
 
+    @Override
     public void viewLogs() {
         io.select();
     }
@@ -259,35 +288,49 @@ class MuleProcess extends FileChangeAdapter implements InternalController, Runti
             });
         }
     }
-
-    @Override
-    public void fileDataCreated(FileEvent fe) {
-        cs.fireChange();
-    }
-
-    @Override
-    public void fileChanged(FileEvent fe) {
-        cs.fireChange();
-    }
-
-    @Override
-    public void fileDeleted(FileEvent fe) {
-        cs.fireChange();
-    }
-
-    @Override
-    public void fileRenamed(FileRenameEvent fe) {
-        cs.fireChange();
-    }
-
+    
+    @NbBundle.Messages({
+        "NBPSupport_StartAction_name=Start",
+        "NBPSupport_DebugAction_name=Start in debug mode",
+        "NBPSupport_StopAction_name=Stop"
+    })
     protected InputOutput createInputOutput(final MuleRuntime runtime) {
         Action[] actions = new Action[]{
-            new StartAction(runtime),
-            new DebugAction(runtime),
-            new StopAction(runtime)
+            new AbstractRuntimeAction(runtime, Bundle.NBPSupport_StartAction_name(), IconUtil.getStartIcon()) {
+                @Override
+                public boolean isEnabled() {
+                    return canStart();
+                }
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    start(false);
+                }
+            },
+            new AbstractRuntimeAction(runtime, Bundle.NBPSupport_StartAction_name(), IconUtil.getDebugIcon()) {
+                @Override
+                public boolean isEnabled() {
+                    return canStart();
+                }
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    start(true);
+                }
+            },
+            new AbstractRuntimeAction(runtime, Bundle.NBPSupport_StopAction_name(), IconUtil.getStopIcon()) {
+                @Override
+                public boolean isEnabled() {
+                    return canStop();
+                }
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    stop(false);
+                }
+            }
         };
-        InputOutput io = IOProvider.getDefault().getIO(runtime.getName(), actions);
-        return io;
+        return IOProvider.getDefault().getIO(runtime.getName(), actions);
     }
 
     private static abstract class AbstractRuntimeAction extends AbstractAction implements ChangeListener {
@@ -321,66 +364,6 @@ class MuleProcess extends FileChangeAdapter implements InternalController, Runti
                     firePropertyChange("enabled", null, isEnabled() ? Boolean.TRUE : Boolean.FALSE);
                 }
             });
-        }
-    }
-
-    @NbBundle.Messages({
-        "NBPSupport_StartAction_name=Start"
-    })
-    private static class StartAction extends AbstractRuntimeAction {
-
-        public StartAction(MuleRuntime runtime) {
-            super(runtime, Bundle.NBPSupport_StartAction_name(), IconUtil.getStartIcon());
-        }
-
-        @Override
-        public boolean isEnabled() {
-            return runtime.canStart();
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            runtime.start(false);
-        }
-    }
-
-    @NbBundle.Messages({
-        "NBPSupport_DebugAction_name=Start in debug mode"
-    })
-    private static class DebugAction extends AbstractRuntimeAction {
-
-        public DebugAction(MuleRuntime runtime) {
-            super(runtime, Bundle.NBPSupport_StartAction_name(), IconUtil.getDebugIcon());
-        }
-
-        @Override
-        public boolean isEnabled() {
-            return runtime.canStart();
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            runtime.start(true);
-        }
-    }
-
-    @NbBundle.Messages({
-        "NBPSupport_StopAction_name=Stop"
-    })
-    private static class StopAction extends AbstractRuntimeAction {
-
-        public StopAction(MuleRuntime runtime) {
-            super(runtime, Bundle.NBPSupport_StopAction_name(), IconUtil.getStopIcon());
-        }
-
-        @Override
-        public boolean isEnabled() {
-            return runtime.canStop();
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            runtime.stop(false);
         }
     }
 }

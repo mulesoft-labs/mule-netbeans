@@ -8,7 +8,7 @@
     </parent>
     <artifactId>mule-netbeans-plugin</artifactId>
     <packaging>nbm</packaging>
-    <version>0.7-SNAPSHOT</version>
+    <version>0.8-SNAPSHOT</version>
     <name>Mule Support Plugin</name>
     <description>Mule Support Plugin</description>
     <properties>
