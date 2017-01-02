@@ -15,6 +15,8 @@
  */
 package org.mule.tooling.netbeans.api;
 
+import java.nio.file.Path;
+
 /**
  *
  * @author Facundo Lopez Kaufmann
@@ -32,6 +34,8 @@ public interface RuntimeProcess {
     public boolean canStop();
 
     public void stop(boolean forced);
+    
+    public void installLicense(Path license);
     
     public void viewLogs();
 }

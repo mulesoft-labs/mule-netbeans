@@ -160,6 +160,9 @@ public class LocalRuntimeProcess implements InternalController, RuntimeConstants
         if (processHolder.get() != null) {
             throw new IllegalStateException("Instance already running");
         }
+        final ExternalProcessBuilder processBuilder = createBasicProcessBuilder()
+                .addEnvironmentVariable("JAVA_TOOL_OPTIONS", debug ? "-agentlib:jdwp=transport=dt_socket,address=5005,server=y,suspend=n" : "")
+                .addArgument("wrapper.app.parameter.1=console0");;
         RP.post(new Runnable() {
             @Override
             public void run() {
@@ -167,47 +170,11 @@ public class LocalRuntimeProcess implements InternalController, RuntimeConstants
                     if (processHolder.get() != null) {
                         return;
                     }
-                    ExecutionDescriptor descriptor = new ExecutionDescriptor()
-                            .inputOutput(io)
-                            .frontWindow(true)
-                            .controllable(true)
-                            .outProcessorFactory(new LogTrackingInputProcessorFactory())
-                            .postExecution(new Runnable() {
-                                @Override
-                                public void run() {
-                                    processHolder.set(null);
-                                    updateStatus(Status.DOWN);
-                                }
-                            });
-                    ExecutionService service = ExecutionService.newService(startProcessBuilder(debug), descriptor, runtime.getName());
+                    ExecutionService service = ExecutionService.newService(processBuilder, LocalRuntimeProcess.this.createExecutionDescriptor(), runtime.getName());
                     processHolder.set(service.run());
                 }
             }
         });
-    }
-
-    private ExternalProcessBuilder startProcessBuilder(boolean debug) {
-        //TODO: allow all the parameter to be configurable
-        String muleHomeString = runtime.getMuleHome().toAbsolutePath().toString();
-        RuntimeVersion version = runtime.getVersion();
-        String muleApp = version.isEnterprise() ? "mule_ee" : "mule";
-        ExternalProcessBuilder processBuilder = new ExternalProcessBuilder(wrapperExec.toAbsolutePath().toString())
-                .addArgument("--console")
-                .addEnvironmentVariable("MULE_APP_LONG", version.getBranch())
-                .addEnvironmentVariable("MULE_APP", muleApp)
-                .addEnvironmentVariable("PWD", muleHomeString + File.separator + "bin")
-                .addEnvironmentVariable("MULE_HOME", muleHomeString)
-                .addEnvironmentVariable("MULE_BASE", muleHomeString)
-                .addEnvironmentVariable("JAVA_TOOL_OPTIONS", debug ? "-agentlib:jdwp=transport=dt_socket,address=5005,server=y,suspend=n" : "")
-                .workingDirectory(new File(muleHomeString, "/bin"));
-        processBuilder = processBuilder.addArgument(muleHomeString + File.separator + "conf" + File.separator + "wrapper.conf");
-        processBuilder = processBuilder.addArgument("wrapper.console.format=M");
-        processBuilder = processBuilder.addArgument("wrapper.console.flush=TRUE");
-        processBuilder = processBuilder.addArgument("wrapper.syslog.ident=mule");
-        processBuilder = processBuilder.addArgument("wrapper.pidfile=" + getPidFilePath().toAbsolutePath().toString());
-        processBuilder = processBuilder.addArgument("wrapper.working.dir=" + muleHomeString);
-        processBuilder = processBuilder.addArgument("wrapper.app.parameter.1=console0");
-        return processBuilder;
     }
 
     private Path getPidFilePath() {
@@ -263,6 +230,67 @@ public class LocalRuntimeProcess implements InternalController, RuntimeConstants
         io.select();
     }
 
+    @Override
+    public void installLicense(Path license) {
+        if (!runtime.getVersion().isEnterprise()) {
+            throw new IllegalStateException("Can't install license on a CE runtime");
+        }
+        if (isRunning()) {
+            throw new IllegalStateException("Can't install license on a running runtime");
+        }
+
+        final ExternalProcessBuilder processBuilder = createBasicProcessBuilder()
+                .addArgument("wrapper.app.parameter.1=--installLicense")
+                .addArgument("wrapper.app.parameter.2=" + license.toAbsolutePath().toString());
+
+        RP.post(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (processHolder) {
+                    if (processHolder.get() != null) {
+                        return;
+                    }
+                    ExecutionService service = ExecutionService.newService(processBuilder, LocalRuntimeProcess.this.createExecutionDescriptor(), runtime.getName());
+                    processHolder.set(service.run());
+                }
+            }
+        });
+    }
+    
+    private ExternalProcessBuilder createBasicProcessBuilder() {
+        RuntimeVersion version = runtime.getVersion();
+        String muleHomeString = runtime.getMuleHome().toAbsolutePath().toString();
+        
+        return new ExternalProcessBuilder(wrapperExec.toAbsolutePath().toString())
+                .addEnvironmentVariable("MULE_APP_LONG", version.getBranch())
+                .addEnvironmentVariable("MULE_APP", version.isEnterprise() ? "mule_ee" : "mule")
+                .addEnvironmentVariable("PWD", muleHomeString + File.separator + "bin")
+                .addEnvironmentVariable("MULE_HOME", muleHomeString)
+                .addEnvironmentVariable("MULE_BASE", muleHomeString)
+                .addArgument(muleHomeString + File.separator + "conf" + File.separator + "wrapper.conf")
+                .addArgument("wrapper.console.format=M")
+                .addArgument("wrapper.console.flush=TRUE")
+                .addArgument("wrapper.syslog.ident=mule")
+                .addArgument("wrapper.pidfile=" + getPidFilePath().toAbsolutePath().toString())
+                .addArgument("wrapper.working.dir=" + muleHomeString)
+                .workingDirectory(new File(muleHomeString, "/bin"));
+    }
+
+    private ExecutionDescriptor createExecutionDescriptor() {
+        return new ExecutionDescriptor()
+                .inputOutput(io)
+                .frontWindow(true)
+                .controllable(true)
+                .outProcessorFactory(new LogTrackingInputProcessorFactory())
+                .postExecution(new Runnable() {
+                    @Override
+                    public void run() {
+                        processHolder.set(null);
+                        updateStatus(Status.DOWN);
+                    }
+                });
+    }
+
     private class LogTrackingInputProcessorFactory implements ExecutionDescriptor.InputProcessorFactory {
 
         @Override
@@ -288,7 +316,7 @@ public class LocalRuntimeProcess implements InternalController, RuntimeConstants
             });
         }
     }
-    
+
     @NbBundle.Messages({
         "NBPSupport_StartAction_name=Start",
         "NBPSupport_DebugAction_name=Start in debug mode",
@@ -353,7 +381,7 @@ public class LocalRuntimeProcess implements InternalController, RuntimeConstants
             if (ace.getAttributeName().equals(ATTRIBUTE_STATUS)) {
                 updateEnabled();
             } else if (ace.getAttributeName().equals(ATTRIBUTE_REGISTERED) && Boolean.FALSE.equals(ace.getValue())) {
-                runtime.removeChangeListener(this);                
+                runtime.removeChangeListener(this);
             }
         }
 

@@ -111,7 +111,7 @@ public class SingleRuntimeNode extends AbstractNode implements ChangeListener {
             null,
             SystemAction.get(TerminateRuntimeAction.class),
             null,
-            SystemAction.get(TerminateRuntimeAction.class),
+            SystemAction.get(InstallLicenseAction.class),
             null,
             DeleteAction.get(DeleteAction.class)};
     }

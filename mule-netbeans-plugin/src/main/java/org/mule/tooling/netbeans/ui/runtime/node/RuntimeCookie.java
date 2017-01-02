@@ -15,6 +15,7 @@
  */
 package org.mule.tooling.netbeans.ui.runtime.node;
 
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.mule.tooling.netbeans.api.MuleRuntime;
 import org.mule.tooling.netbeans.api.RuntimeProcess;
@@ -60,6 +61,10 @@ public class RuntimeCookie implements Node.Cookie {
     
     public boolean isRunning() {
         return getRuntimeProcess().isRunning();
+    }
+    
+    public void installLicense(Path license) {
+        getRuntimeProcess().installLicense(license);
     }
     
     public boolean isDebugging() {
