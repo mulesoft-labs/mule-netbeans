@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Facundo Lopez Kaufmann.
+ * Copyright 2015 Facundo Lopez Kaufmann.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.api.runtime;
+package org.mule.tooling.netbeans.ui.runtime.node;
 
-import org.mule.tooling.netbeans.runtime.FileHelper;
-import org.junit.Assert;
-import org.junit.Test;
+import org.openide.util.NbBundle.Messages;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public class FileHelperTest {
+@Messages({
+    "DebugRuntimeAction_name=Start in debug mode"
+})
+public class DebugRuntimeAction extends StartRuntimeAction {
 
-    /**
-     * Test of isJar method, of class FileHelper.
-     */
-    @Test
-    public void testIsJar() {
-        Assert.assertTrue(FileHelper.isJar("parapam.jar"));
-        Assert.assertFalse(FileHelper.isJar(".DS_Store"));
-        Assert.assertFalse(FileHelper.isJar("file"));
+    public DebugRuntimeAction() {
+        this.debug = true;
+    }
+
+    @Override
+    public String getName() {
+        return Bundle.DebugRuntimeAction_name();
     }
 }

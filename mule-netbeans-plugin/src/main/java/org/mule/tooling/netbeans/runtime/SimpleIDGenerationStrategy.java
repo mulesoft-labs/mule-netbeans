@@ -13,25 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.api.runtime;
+package org.mule.tooling.netbeans.runtime;
 
-import org.mule.tooling.netbeans.runtime.FileHelper;
-import org.junit.Assert;
-import org.junit.Test;
+import java.util.UUID;
+import org.openide.util.lookup.ServiceProvider;
+import org.mule.tooling.netbeans.api.IDGenerationStrategy;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public class FileHelperTest {
+@ServiceProvider(service = IDGenerationStrategy.class)
+public class SimpleIDGenerationStrategy implements IDGenerationStrategy {
 
-    /**
-     * Test of isJar method, of class FileHelper.
-     */
-    @Test
-    public void testIsJar() {
-        Assert.assertTrue(FileHelper.isJar("parapam.jar"));
-        Assert.assertFalse(FileHelper.isJar(".DS_Store"));
-        Assert.assertFalse(FileHelper.isJar("file"));
+    @Override
+    public String newId() {
+        return UUID.randomUUID().toString();
     }
 }

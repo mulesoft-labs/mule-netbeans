@@ -13,25 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mule.tooling.netbeans.api.runtime;
+package org.mule.tooling.netbeans.runtime;
 
-import org.mule.tooling.netbeans.runtime.FileHelper;
-import org.junit.Assert;
-import org.junit.Test;
+import java.io.File;
+import org.mule.tooling.netbeans.api.Library;
 
 /**
  *
  * @author Facundo Lopez Kaufmann
  */
-public class FileHelperTest {
+public class JarLibrary implements Library {
+    private final File path;
 
-    /**
-     * Test of isJar method, of class FileHelper.
-     */
-    @Test
-    public void testIsJar() {
-        Assert.assertTrue(FileHelper.isJar("parapam.jar"));
-        Assert.assertFalse(FileHelper.isJar(".DS_Store"));
-        Assert.assertFalse(FileHelper.isJar("file"));
+    public JarLibrary(File path) {
+        this.path = path;
+    }
+    
+    @Override
+    public String getName() {
+        return path.getName();
+    }
+    
+    public File getFile() {
+        return path;
+    }
+
+    @Override
+    public String toString() {
+        return "JarLibrary{" + "name=" + getName() + '}';
     }
 }
